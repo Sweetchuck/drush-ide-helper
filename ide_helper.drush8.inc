@@ -9,10 +9,6 @@ use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-function foo() {
-  \Drupal::getContainer()->get('entity.query');
-}
-
 /**
  * Implements hook_drush_command().
  */
@@ -62,12 +58,17 @@ function drush_ide_helper_phpstorm_meta_validate() {
   }
 
   if (file_exists($outputDir) && !is_dir($outputDir)) {
-      drush_set_error(
-        'IDE_HELPER_OUTPUT_DIR_IS_NOT_DIR',
-        dt('The output directory is exists but not a directory.')
-      );
+    drush_set_error(
+      'IDE_HELPER_OUTPUT_DIR_IS_NOT_DIR',
+      dt(
+        "The given path '@path' cannot be used as output directory, because it is exists but not a directory.",
+        [
+          '@path' => $outputDir,
+        ]
+      )
+    );
 
-      return;
+    return;
   }
 }
 
@@ -130,9 +131,8 @@ function drush_ide_helper_phpstorm_meta() {
     ],
   ];
 
+  $meta = new IdeHelperPhpStormMeta();
   foreach ($extensions as $extensionName => $items) {
-    $meta = new IdeHelperPhpStormMeta();
-
     if (isset($items['entityTypes'])) {
       /** @var \Drupal\Core\Entity\EntityTypeInterface $entityTypeDefinition */
       foreach ($items['entityTypes'] as $entityTypeDefinition) {
@@ -185,7 +185,7 @@ function ide_helper_extension_name_from_fqn(string $fqn): string {
   return $parts[1] ?? '_global';
 }
 
-function ide_helper_class_name_from_fqn(string $fqn){
+function ide_helper_class_name_from_fqn(string $fqn) {
   $parts = explode('\\', trim($fqn, '\\'));
 
   return end($parts);
@@ -204,7 +204,7 @@ function ide_helper_service_class(array $service): string {
     return $service['class'];
   }
 
-  //@todo Get parent.
+  // @todo Get parent.
   return '';
 }
 
@@ -285,6 +285,9 @@ function ide_helper_split_camel_case(string $camelCase): array {
   return preg_split('/(?<=[a-z])(?=[A-Z])/', $camelCase);
 }
 
+/**
+ * Class IdeHelperPhpStormMeta.
+ */
 class IdeHelperPhpStormMeta {
 
   /**
@@ -362,12 +365,16 @@ PHP;
   protected function reset() {
     $this->useStatements = [];
     $this->classAliases = [];
+    $this->overrides = [];
 
     return $this;
   }
 
   /**
+   * Parse the override definitions and prepare the use statements.
+   *
    * @return $this
+   *   The called object.
    */
   protected function parseOverrides() {
     foreach ($this->overrides as $override) {

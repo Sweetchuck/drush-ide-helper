@@ -1,0 +1,62 @@
+<phpunit
+  backupGlobals="false"
+  backupStaticAttributes="false"
+  syntaxCheck="false"
+  bootstrap="src-dev/Tests/bootstrap.inc"
+  colors="true">
+
+  <php>
+    <!-- These variables may alternatively be set as environment variables. -->
+
+    <!-- Drupal major version to run tests over -->
+    <var name="UNISH_DRUPAL_MAJOR_VERSION" value="8"/>
+
+    <!--Uncomment and edit one of the lines below depending on DB platform.-->
+    <!--DB User must have create/drop permissions-->
+    <!-- <var name="UNISH_DB_URL" value="mysql://root:@127.0.0.1"/> -->
+    <!-- <var name="UNISH_DB_URL" value="pgsql://postgres:@localhost"/>-->
+    <!--<var name="UNISH_DB_URL" value="sqlite://none/of/this/matters"/>-->
+
+    <!--User must have write permissions to this directory.-->
+    <!--If not supplied, defaults to sys_get_temp_dir().-->
+    <!-- <var name="UNISH_TMP" value="/tmp"/> -->
+
+    <!--Uncomment the line below if your path to drush differs from `which drush`. Use absolute path.-->
+    <!--<var name="UNISH_DRUSH" value="./bin/drush"/>-->
+
+    <!--Uncomment to provide a group the user running the tests belong to. This is needed for some filesystem tests. -->
+    <!--<var name="UNISH_USERGROUP" value="staff"/>-->
+
+    <!-- Uncomment to disable the total runtime and output timeouts for commands run through CommandUnishTestCase::execute().  -->
+    <env name="UNISH_NO_TIMEOUTS" value="y"/>
+  </php>
+
+  <testsuites>
+    <testsuite name="Drush Test Suite">
+      <directory>src-dev/Tests</directory>
+    </testsuite>
+  </testsuites>
+
+  <filter>
+    <whitelist processUncoveredFilesFromWhitelist="true">
+      <file>ide_helper.drush8.inc</file>
+    </whitelist>
+  </filter>
+
+  <logging>
+    <log
+      type="coverage-html"
+      target="reports/unish/html"
+      lowUpperBound="35"
+      highLowerBound="70"/>
+
+    <log
+      type="coverage-clover"
+      target="reports/unish/coverage.xml"/>
+
+    <log
+      type="junit"
+      target="reports/unish/junit.xml"
+      logIncompleteSkipped="true"/>
+  </logging>
+</phpunit>

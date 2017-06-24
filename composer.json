@@ -10,15 +10,23 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
+        "php": ">=7.1",
         "drush/drush": "^8.1"
     },
     "require-dev": {
-        "cheppers/git-hooks": "^0.0"
+        "cheppers/git-hooks": "^0.0",
+        "drupal/coder": "^8.2",
+        "phpunit/phpunit": "5.*",
+        "symfony/process": "^3.3",
+        "webmozart/path-util": "^2.3"
     },
     "autoload-dev": {
+        "psr-0": {
+            "Unish": "vendor/drush/drush/tests/"
+        },
         "psr-4": {
-            "Drupal\\ide_helper\\Composer\\": "src-dev/Composer",
-            "Drupal\\ide_helper\\Tests\\": "src-dev/Tests"
+            "Drupal\\ide_helper\\Composer\\": "src-dev/Composer/",
+            "Drupal\\ide_helper\\Tests\\": "src-dev/Tests/"
         }
     },
     "scripts": {
