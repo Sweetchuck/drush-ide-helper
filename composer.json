@@ -1,0 +1,28 @@
+{
+    "name": "drupal/ide_helper",
+    "description": "IDE helper",
+    "license": "GPL-3.0",
+    "type": "drupal-drush",
+    "config": {
+        "bin-dir": "bin",
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "drush/drush": "^8.1"
+    },
+    "require-dev": {
+        "cheppers/git-hooks": "^0.0"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Drupal\\ide_helper\\Composer\\": "src-dev/Composer",
+            "Drupal\\ide_helper\\Tests\\": "src-dev/Tests"
+        }
+    },
+    "scripts": {
+        "post-install-cmd": "\\Drupal\\ide_helper\\Composer\\Scripts::postInstallCmd",
+        "post-update-cmd": "\\Drupal\\ide_helper\\Composer\\Scripts::postUpdateCmd"
+    }
+}
