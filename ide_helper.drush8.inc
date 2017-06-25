@@ -290,20 +290,6 @@ function ide_helper_split_camel_case(string $camelCase): array {
  */
 class IdeHelperPhpStormMeta {
 
-  /**
-   * Alias to use statement.
-   *
-   * @var array
-   */
-  protected $useStatements = [];
-
-  /**
-   * FQN to alias.
-   *
-   * @var array
-   */
-  protected $classAliases = [];
-
   protected $overrides = [];
 
   protected $tplFile = <<<'PHP'
@@ -315,8 +301,6 @@ class IdeHelperPhpStormMeta {
  */
 
 namespace PHPSTORM_META {
-
-  {{ use }}
 
   {{ overrides }}
 
@@ -350,10 +334,7 @@ PHP;
   }
 
   public function render(): string {
-    $this->parseOverrides();
-
     $vars = [
-      '{{ use }}' => implode("\n  ", $this->useStatements),
       '{{ overrides }}' => $this->renderOverrides(),
     ];
 
@@ -363,28 +344,7 @@ PHP;
   }
 
   protected function reset() {
-    $this->useStatements = [];
-    $this->classAliases = [];
     $this->overrides = [];
-
-    return $this;
-  }
-
-  /**
-   * Parse the override definitions and prepare the use statements.
-   *
-   * @return $this
-   *   The called object.
-   */
-  protected function parseOverrides() {
-    foreach ($this->overrides as $override) {
-      $this->addToUseStatements($override['class']);
-      foreach ($override['map'] as $fqn) {
-        $this->addToUseStatements($fqn);
-      }
-    }
-
-    sort($this->useStatements);
 
     return $this;
   }
@@ -402,40 +362,22 @@ PHP;
     $pairs = [];
     ksort($override['map']);
     foreach ($override['map'] as $name => $fqn) {
-      $alias = $this->classAliases[$fqn];
-      $pairs[] = "'$name' => $alias::class";
+      $fqn = $this->prefixWithBackslash($fqn);
+      $pairs[] = "'$name' => $fqn::class";
     }
 
     return strtr(
       $this->tplOverride,
       [
-        '{{ class }}' => $this->classAliases[$override['class']],
+        '{{ class }}' => $this->prefixWithBackslash($override['class']),
         '{{ method }}' => $override['method'],
         '{{ pairs }}' => implode(",\n      ", $pairs) . ',',
       ]
     );
   }
 
-  protected function addToUseStatements(string $fqn): void {
-    if (isset($this->classAliases[$fqn])) {
-      return;
-    }
-
-    $cleanFqn = trim($fqn, '\\');
-    $parts = explode('\\', $cleanFqn);
-    $class = end($parts);
-    $alias = $class;
-
-    if (isset($this->useStatements[$alias])) {
-      $i = 0;
-      while (isset($this->useStatements[$alias])) {
-        $alias = $class . (++$i);
-      }
-    }
-
-    $use = "use $cleanFqn" . ($alias !== $class ? " as $alias;" : ';');
-    $this->classAliases[$fqn] = $alias;
-    $this->useStatements[$alias] = $use;
+  protected function prefixWithBackslash(string $fqn): string {
+    return (Unicode::substr($fqn, 0, 1) !== '\\') ? "\\$fqn" : $fqn;
   }
 
 }

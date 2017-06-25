@@ -7,73 +7,55 @@
 
 namespace PHPSTORM_META {
 
-  use Drupal\Core\Authentication\AuthenticationProviderInterface;
-  use Drupal\Core\Entity\EntityAccessControlHandlerInterface;
-  use Drupal\Core\Entity\EntityListBuilderInterface;
-  use Drupal\Core\Entity\EntityTypeManagerInterface;
-  use Drupal\Core\Entity\EntityViewBuilderInterface;
-  use Drupal\Core\Plugin\Context\ContextProviderInterface;
-  use Drupal\Core\Routing\Access\AccessInterface;
-  use Drupal\Core\Theme\ThemeNegotiatorInterface;
-  use Drupal\user\PermissionHandlerInterface;
-  use Drupal\user\PrivateTempStoreFactory;
-  use Drupal\user\RoleStorageInterface;
-  use Drupal\user\SharedTempStoreFactory;
-  use Drupal\user\UserAuthInterface;
-  use Drupal\user\UserDataInterface;
-  use Drupal\user\UserStorageInterface;
-  use Symfony\Component\DependencyInjection\ContainerInterface;
-  use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-
   override(
-    EntityTypeManagerInterface::getStorage(0),
+    \Drupal\Core\Entity\EntityTypeManagerInterface::getStorage(0),
     map([
-      'user' => UserStorageInterface::class,
-      'user_role' => RoleStorageInterface::class,
+      'user' => \Drupal\user\UserStorageInterface::class,
+      'user_role' => \Drupal\user\RoleStorageInterface::class,
     ])
   );
 
   override(
-    EntityTypeManagerInterface::getAccessControlHandler(0),
+    \Drupal\Core\Entity\EntityTypeManagerInterface::getAccessControlHandler(0),
     map([
-      'user' => EntityAccessControlHandlerInterface::class,
-      'user_role' => EntityAccessControlHandlerInterface::class,
+      'user' => \Drupal\Core\Entity\EntityAccessControlHandlerInterface::class,
+      'user_role' => \Drupal\Core\Entity\EntityAccessControlHandlerInterface::class,
     ])
   );
 
   override(
-    EntityTypeManagerInterface::getListBuilder(0),
+    \Drupal\Core\Entity\EntityTypeManagerInterface::getListBuilder(0),
     map([
-      'user' => EntityListBuilderInterface::class,
-      'user_role' => EntityListBuilderInterface::class,
+      'user' => \Drupal\Core\Entity\EntityListBuilderInterface::class,
+      'user_role' => \Drupal\Core\Entity\EntityListBuilderInterface::class,
     ])
   );
 
   override(
-    EntityTypeManagerInterface::getViewBuilder(0),
+    \Drupal\Core\Entity\EntityTypeManagerInterface::getViewBuilder(0),
     map([
-      'user' => EntityViewBuilderInterface::class,
+      'user' => \Drupal\Core\Entity\EntityViewBuilderInterface::class,
     ])
   );
 
   override(
-    ContainerInterface::get(0),
+    \Symfony\Component\DependencyInjection\ContainerInterface::get(0),
     map([
-      'access_check.permission' => AccessInterface::class,
-      'access_check.user.login_status' => AccessInterface::class,
-      'access_check.user.register' => AccessInterface::class,
-      'access_check.user.role' => AccessInterface::class,
-      'theme.negotiator.admin_theme' => ThemeNegotiatorInterface::class,
-      'user.auth' => UserAuthInterface::class,
-      'user.authentication.cookie' => AuthenticationProviderInterface::class,
-      'user.current_user_context' => ContextProviderInterface::class,
-      'user.data' => UserDataInterface::class,
-      'user.permissions' => PermissionHandlerInterface::class,
-      'user.private_tempstore' => PrivateTempStoreFactory::class,
-      'user.shared_tempstore' => SharedTempStoreFactory::class,
-      'user_access_denied_subscriber' => EventSubscriberInterface::class,
-      'user_last_access_subscriber' => EventSubscriberInterface::class,
-      'user_maintenance_mode_subscriber' => EventSubscriberInterface::class,
+      'access_check.permission' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'access_check.user.login_status' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'access_check.user.register' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'access_check.user.role' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'theme.negotiator.admin_theme' => \Drupal\Core\Theme\ThemeNegotiatorInterface::class,
+      'user.auth' => \Drupal\user\UserAuthInterface::class,
+      'user.authentication.cookie' => \Drupal\Core\Authentication\AuthenticationProviderInterface::class,
+      'user.current_user_context' => \Drupal\Core\Plugin\Context\ContextProviderInterface::class,
+      'user.data' => \Drupal\user\UserDataInterface::class,
+      'user.permissions' => \Drupal\user\PermissionHandlerInterface::class,
+      'user.private_tempstore' => \Drupal\user\PrivateTempStoreFactory::class,
+      'user.shared_tempstore' => \Drupal\user\SharedTempStoreFactory::class,
+      'user_access_denied_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'user_last_access_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'user_maintenance_mode_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
     ])
   );
 

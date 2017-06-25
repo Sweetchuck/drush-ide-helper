@@ -7,46 +7,35 @@
 
 namespace PHPSTORM_META {
 
-  use Drupal\Core\Breadcrumb\BreadcrumbBuilderInterface;
-  use Drupal\Core\Config\Entity\ConfigEntityStorageInterface;
-  use Drupal\Core\Entity\EntityAccessControlHandlerInterface;
-  use Drupal\Core\Entity\EntityTypeManagerInterface;
-  use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
-  use Drupal\Core\Routing\Access\AccessInterface;
-  use Drupal\Core\Theme\ThemeNegotiatorInterface;
-  use Drupal\system\SystemManager;
-  use Symfony\Component\DependencyInjection\ContainerInterface;
-  use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-
   override(
-    EntityTypeManagerInterface::getStorage(0),
+    \Drupal\Core\Entity\EntityTypeManagerInterface::getStorage(0),
     map([
-      'action' => ConfigEntityStorageInterface::class,
-      'menu' => ConfigEntityStorageInterface::class,
+      'action' => \Drupal\Core\Config\Entity\ConfigEntityStorageInterface::class,
+      'menu' => \Drupal\Core\Config\Entity\ConfigEntityStorageInterface::class,
     ])
   );
 
   override(
-    EntityTypeManagerInterface::getAccessControlHandler(0),
+    \Drupal\Core\Entity\EntityTypeManagerInterface::getAccessControlHandler(0),
     map([
-      'action' => EntityAccessControlHandlerInterface::class,
-      'menu' => EntityAccessControlHandlerInterface::class,
+      'action' => \Drupal\Core\Entity\EntityAccessControlHandlerInterface::class,
+      'menu' => \Drupal\Core\Entity\EntityAccessControlHandlerInterface::class,
     ])
   );
 
   override(
-    ContainerInterface::get(0),
+    \Symfony\Component\DependencyInjection\ContainerInterface::get(0),
     map([
-      'access_check.cron' => AccessInterface::class,
-      'access_check.db_update' => AccessInterface::class,
-      'path_processor.files' => InboundPathProcessorInterface::class,
-      'system.admin_path.route_subscriber' => EventSubscriberInterface::class,
-      'system.breadcrumb.default' => BreadcrumbBuilderInterface::class,
-      'system.config_cache_tag' => EventSubscriberInterface::class,
-      'system.config_subscriber' => EventSubscriberInterface::class,
-      'system.manager' => SystemManager::class,
-      'theme.negotiator.system.batch' => ThemeNegotiatorInterface::class,
-      'theme.negotiator.system.db_update' => ThemeNegotiatorInterface::class,
+      'access_check.cron' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'access_check.db_update' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'path_processor.files' => \Drupal\Core\PathProcessor\InboundPathProcessorInterface::class,
+      'system.admin_path.route_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'system.breadcrumb.default' => \Drupal\Core\Breadcrumb\BreadcrumbBuilderInterface::class,
+      'system.config_cache_tag' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'system.config_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'system.manager' => \Drupal\system\SystemManager::class,
+      'theme.negotiator.system.batch' => \Drupal\Core\Theme\ThemeNegotiatorInterface::class,
+      'theme.negotiator.system.db_update' => \Drupal\Core\Theme\ThemeNegotiatorInterface::class,
     ])
   );
 

@@ -7,640 +7,418 @@
 
 namespace PHPSTORM_META {
 
-  use ArrayAccess;
-  use Drupal\Component\Datetime\TimeInterface;
-  use Drupal\Component\Serialization\SerializationInterface;
-  use Drupal\Component\Transliteration\TransliterationInterface;
-  use Drupal\Component\Uuid\UuidInterface;
-  use Drupal\Core\Access\AccessArgumentsResolverFactoryInterface;
-  use Drupal\Core\Access\AccessCheckInterface;
-  use Drupal\Core\Access\AccessManagerInterface;
-  use Drupal\Core\Access\CheckProviderInterface;
-  use Drupal\Core\Access\CsrfTokenGenerator;
-  use Drupal\Core\AppRootFactory;
-  use Drupal\Core\Asset\AssetCollectionGrouperInterface;
-  use Drupal\Core\Asset\AssetCollectionOptimizerInterface;
-  use Drupal\Core\Asset\AssetCollectionRendererInterface;
-  use Drupal\Core\Asset\AssetDumperInterface;
-  use Drupal\Core\Asset\AssetOptimizerInterface;
-  use Drupal\Core\Asset\AssetResolverInterface;
-  use Drupal\Core\Asset\LibraryDependencyResolverInterface;
-  use Drupal\Core\Asset\LibraryDiscoveryInterface;
-  use Drupal\Core\Asset\LibraryDiscoveryParser;
-  use Drupal\Core\Authentication\AuthenticationCollectorInterface;
-  use Drupal\Core\Authentication\AuthenticationProviderInterface;
-  use Drupal\Core\Batch\BatchStorageInterface;
-  use Drupal\Core\Block\BlockManagerInterface;
-  use Drupal\Core\Breadcrumb\ChainBreadcrumbBuilderInterface;
-  use Drupal\Core\Cache\CacheBackendInterface;
-  use Drupal\Core\Cache\CacheCollectorInterface;
-  use Drupal\Core\Cache\CacheFactoryInterface;
-  use Drupal\Core\Cache\CacheTagsChecksumInterface;
-  use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
-  use Drupal\Core\Cache\CacheableDependencyInterface;
-  use Drupal\Core\Cache\Context\CacheContextInterface;
-  use Drupal\Core\Cache\Context\CacheContextsManager;
-  use Drupal\Core\Cache\Context\CalculatedCacheContextInterface;
-  use Drupal\Core\Cache\Context\RequestFormatCacheContext;
-  use Drupal\Core\Cache\Context\SessionCacheContext;
-  use Drupal\Core\Config\ConfigFactoryInterface;
-  use Drupal\Core\Config\ConfigInstallerInterface;
-  use Drupal\Core\Config\ConfigManagerInterface;
-  use Drupal\Core\Config\Entity\ConfigEntityStorageInterface;
-  use Drupal\Core\Config\StorageInterface;
-  use Drupal\Core\Config\TypedConfigManagerInterface;
-  use Drupal\Core\Controller\ControllerResolverInterface;
-  use Drupal\Core\Controller\HtmlFormController;
-  use Drupal\Core\Controller\TitleResolverInterface;
-  use Drupal\Core\CronInterface;
-  use Drupal\Core\Database\Connection;
-  use Drupal\Core\Datetime\DateFormatterInterface;
-  use Drupal\Core\DependencyInjection\ClassResolverInterface;
-  use Drupal\Core\DestructableInterface;
-  use Drupal\Core\Diff\DiffFormatter;
-  use Drupal\Core\Entity\EntityAccessControlHandlerInterface;
-  use Drupal\Core\Entity\EntityAutocompleteMatcher;
-  use Drupal\Core\Entity\EntityBundleListenerInterface;
-  use Drupal\Core\Entity\EntityDefinitionUpdateManagerInterface;
-  use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
-  use Drupal\Core\Entity\EntityFieldManagerInterface;
-  use Drupal\Core\Entity\EntityFormBuilderInterface;
-  use Drupal\Core\Entity\EntityLastInstalledSchemaRepositoryInterface;
-  use Drupal\Core\Entity\EntityListBuilderInterface;
-  use Drupal\Core\Entity\EntityManagerInterface;
-  use Drupal\Core\Entity\EntityReferenceSelection\SelectionPluginManagerInterface;
-  use Drupal\Core\Entity\EntityRepositoryInterface;
-  use Drupal\Core\Entity\EntityResolverManager;
-  use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
-  use Drupal\Core\Entity\EntityTypeListenerInterface;
-  use Drupal\Core\Entity\EntityTypeManagerInterface;
-  use Drupal\Core\Entity\EntityTypeRepositoryInterface;
-  use Drupal\Core\Entity\HtmlEntityFormController;
-  use Drupal\Core\Entity\Query\QueryFactory;
-  use Drupal\Core\Entity\Query\QueryFactoryInterface;
-  use Drupal\Core\Executable\ExecutableManagerInterface;
-  use Drupal\Core\Extension\InfoParserInterface;
-  use Drupal\Core\Extension\ModuleHandlerInterface;
-  use Drupal\Core\Extension\ModuleInstallerInterface;
-  use Drupal\Core\Extension\ModuleUninstallValidatorInterface;
-  use Drupal\Core\Extension\ThemeHandlerInterface;
-  use Drupal\Core\Extension\ThemeInstallerInterface;
-  use Drupal\Core\Field\FieldDefinitionListenerInterface;
-  use Drupal\Core\Field\FieldStorageDefinitionListenerInterface;
-  use Drupal\Core\Field\FieldTypePluginManagerInterface;
-  use Drupal\Core\File\FileSystemInterface;
-  use Drupal\Core\Flood\FloodInterface;
-  use Drupal\Core\Form\FormAjaxResponseBuilderInterface;
-  use Drupal\Core\Form\FormBuilderInterface;
-  use Drupal\Core\Form\FormCacheInterface;
-  use Drupal\Core\Form\FormErrorHandlerInterface;
-  use Drupal\Core\Form\FormSubmitterInterface;
-  use Drupal\Core\Form\FormValidatorInterface;
-  use Drupal\Core\Http\ClientFactory;
-  use Drupal\Core\Http\HandlerStackConfigurator;
-  use Drupal\Core\ImageToolkit\ImageToolkitOperationManagerInterface;
-  use Drupal\Core\Image\ImageFactory;
-  use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
-  use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
-  use Drupal\Core\Language\LanguageDefault;
-  use Drupal\Core\Language\LanguageManagerInterface;
-  use Drupal\Core\Locale\CountryManagerInterface;
-  use Drupal\Core\Lock\LockBackendInterface;
-  use Drupal\Core\Logger\LogMessageParserInterface;
-  use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-  use Drupal\Core\Logger\LoggerChannelInterface;
-  use Drupal\Core\Mail\MailManagerInterface;
-  use Drupal\Core\Menu\ContextualLinkManagerInterface;
-  use Drupal\Core\Menu\DefaultMenuLinkTreeManipulators;
-  use Drupal\Core\Menu\LocalActionManagerInterface;
-  use Drupal\Core\Menu\LocalTaskManagerInterface;
-  use Drupal\Core\Menu\MenuActiveTrailInterface;
-  use Drupal\Core\Menu\MenuLinkManagerInterface;
-  use Drupal\Core\Menu\MenuLinkTreeInterface;
-  use Drupal\Core\Menu\MenuParentFormSelectorInterface;
-  use Drupal\Core\Menu\MenuTreeStorageInterface;
-  use Drupal\Core\Menu\StaticMenuLinkOverridesInterface;
-  use Drupal\Core\PageCache\ChainResponsePolicyInterface;
-  use Drupal\Core\PageCache\RequestPolicyInterface;
-  use Drupal\Core\PageCache\ResponsePolicyInterface;
-  use Drupal\Core\ParamConverter\ParamConverterInterface;
-  use Drupal\Core\ParamConverter\ParamConverterManagerInterface;
-  use Drupal\Core\Password\PasswordInterface;
-  use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
-  use Drupal\Core\Path\AliasManagerInterface;
-  use Drupal\Core\Path\AliasStorageInterface;
-  use Drupal\Core\Path\AliasWhitelistInterface;
-  use Drupal\Core\Path\CurrentPathStack;
-  use Drupal\Core\Path\PathMatcherInterface;
-  use Drupal\Core\Path\PathValidatorInterface;
-  use Drupal\Core\Plugin\CachedDiscoveryClearerInterface;
-  use Drupal\Core\Plugin\Context\ContextHandlerInterface;
-  use Drupal\Core\Plugin\Context\ContextProviderInterface;
-  use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
-  use Drupal\Core\Plugin\PluginFormFactoryInterface;
-  use Drupal\Core\PrivateKey;
-  use Drupal\Core\Queue\QueueDatabaseFactory;
-  use Drupal\Core\Queue\QueueFactory;
-  use Drupal\Core\Queue\QueueWorkerManagerInterface;
-  use Drupal\Core\Render\AttachmentsResponseProcessorInterface;
-  use Drupal\Core\Render\BareHtmlPageRendererInterface;
-  use Drupal\Core\Render\ElementInfoManagerInterface;
-  use Drupal\Core\Render\MainContent\MainContentRendererInterface;
-  use Drupal\Core\Render\PlaceholderGeneratorInterface;
-  use Drupal\Core\Render\Placeholder\PlaceholderStrategyInterface;
-  use Drupal\Core\Render\RenderCacheInterface;
-  use Drupal\Core\Render\RendererInterface as RendererInterface1;
-  use Drupal\Core\RouteProcessor\OutboundRouteProcessorInterface;
-  use Drupal\Core\Routing\AccessAwareRouterInterface;
-  use Drupal\Core\Routing\Access\AccessInterface;
-  use Drupal\Core\Routing\AdminContext;
-  use Drupal\Core\Routing\Enhancer\RouteEnhancerInterface as RouteEnhancerInterface1;
-  use Drupal\Core\Routing\MatcherDumperInterface;
-  use Drupal\Core\Routing\PreloadableRouteProviderInterface;
-  use Drupal\Core\Routing\RedirectDestinationInterface;
-  use Drupal\Core\Routing\RequestContext;
-  use Drupal\Core\Routing\ResettableStackedRouteMatchInterface;
-  use Drupal\Core\Routing\RouteBuilderInterface;
-  use Drupal\Core\Routing\RouteFilterInterface as RouteFilterInterface1;
-  use Drupal\Core\Routing\RouteProviderInterface;
-  use Drupal\Core\Routing\UrlGeneratorInterface;
-  use Drupal\Core\Session\AccountProxyInterface;
-  use Drupal\Core\Session\AccountSwitcherInterface;
-  use Drupal\Core\Session\PermissionsHashGeneratorInterface;
-  use Drupal\Core\Session\SessionConfigurationInterface;
-  use Drupal\Core\Session\SessionManagerInterface;
-  use Drupal\Core\Session\WriteSafeSessionHandlerInterface;
-  use Drupal\Core\SitePathFactory;
-  use Drupal\Core\Site\MaintenanceModeInterface;
-  use Drupal\Core\Site\Settings;
-  use Drupal\Core\State\StateInterface;
-  use Drupal\Core\StreamWrapper\PhpStreamWrapperInterface;
-  use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
-  use Drupal\Core\StringTranslation\TranslationInterface;
-  use Drupal\Core\StringTranslation\Translator\TranslatorInterface;
-  use Drupal\Core\Template\TwigEnvironment;
-  use Drupal\Core\Theme\ThemeInitializationInterface;
-  use Drupal\Core\Theme\ThemeManagerInterface;
-  use Drupal\Core\Theme\ThemeNegotiatorInterface;
-  use Drupal\Core\TypedData\TypedDataManagerInterface;
-  use Drupal\Core\Update\UpdateRegistry;
-  use Drupal\Core\Update\UpdateRegistryFactory;
-  use Drupal\Core\Utility\LinkGeneratorInterface;
-  use Drupal\Core\Utility\Token;
-  use Drupal\Core\Utility\UnroutedUrlAssemblerInterface;
-  use Egulias\EmailValidator\EmailValidatorInterface;
-  use GuzzleHttp\ClientInterface;
-  use GuzzleHttp\HandlerStack;
-  use SessionHandlerInterface;
-  use SplString;
-  use Symfony\Bridge\PsrHttpMessage\HttpFoundationFactoryInterface;
-  use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
-  use Symfony\Cmf\Component\Routing\ChainedRouterInterface;
-  use Symfony\Cmf\Component\Routing\Enhancer\RouteEnhancerInterface;
-  use Symfony\Cmf\Component\Routing\NestedMatcher\RouteFilterInterface;
-  use Symfony\Component\DependencyInjection\ContainerInterface;
-  use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-  use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-  use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
-  use Symfony\Component\HttpFoundation\RequestStack;
-  use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
-  use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
-  use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
-  use Symfony\Component\HttpFoundation\Session\SessionInterface;
-  use Symfony\Component\HttpKernel\HttpKernelInterface;
-  use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
-  use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
-  use Symfony\Component\Routing\RouterInterface;
-  use Twig_ExistsLoaderInterface;
-  use Twig_ExtensionInterface;
-  use Twig_LoaderInterface;
-  use Zend\Feed\Reader\ExtensionManagerInterface;
-  use Zend\Feed\Reader\Extension\Atom\Entry as Entry2;
-  use Zend\Feed\Reader\Extension\Atom\Feed as Feed1;
-  use Zend\Feed\Reader\Extension\Content\Entry as Entry1;
-  use Zend\Feed\Reader\Extension\DublinCore\Entry;
-  use Zend\Feed\Reader\Extension\DublinCore\Feed;
-  use Zend\Feed\Reader\Extension\Podcast\Entry as Entry6;
-  use Zend\Feed\Reader\Extension\Podcast\Feed as Feed2;
-  use Zend\Feed\Reader\Extension\Slash\Entry as Entry3;
-  use Zend\Feed\Reader\Extension\Thread\Entry as Entry5;
-  use Zend\Feed\Reader\Extension\WellFormedWeb\Entry as Entry4;
-  use Zend\Feed\Writer\Extension\ITunes\Entry as Entry7;
-  use Zend\Feed\Writer\Extension\ITunes\Feed as Feed3;
-  use Zend\Feed\Writer\Extension\RendererInterface;
-
   override(
-    EntityTypeManagerInterface::getStorage(0),
+    \Drupal\Core\Entity\EntityTypeManagerInterface::getStorage(0),
     map([
-      'base_field_override' => ConfigEntityStorageInterface::class,
-      'date_format' => ConfigEntityStorageInterface::class,
-      'entity_form_display' => ConfigEntityStorageInterface::class,
-      'entity_form_mode' => ConfigEntityStorageInterface::class,
-      'entity_view_display' => ConfigEntityStorageInterface::class,
-      'entity_view_mode' => ConfigEntityStorageInterface::class,
+      'base_field_override' => \Drupal\Core\Config\Entity\ConfigEntityStorageInterface::class,
+      'date_format' => \Drupal\Core\Config\Entity\ConfigEntityStorageInterface::class,
+      'entity_form_display' => \Drupal\Core\Config\Entity\ConfigEntityStorageInterface::class,
+      'entity_form_mode' => \Drupal\Core\Config\Entity\ConfigEntityStorageInterface::class,
+      'entity_view_display' => \Drupal\Core\Config\Entity\ConfigEntityStorageInterface::class,
+      'entity_view_mode' => \Drupal\Core\Config\Entity\ConfigEntityStorageInterface::class,
     ])
   );
 
   override(
-    EntityTypeManagerInterface::getAccessControlHandler(0),
+    \Drupal\Core\Entity\EntityTypeManagerInterface::getAccessControlHandler(0),
     map([
-      'base_field_override' => EntityAccessControlHandlerInterface::class,
-      'date_format' => EntityAccessControlHandlerInterface::class,
-      'entity_form_display' => EntityAccessControlHandlerInterface::class,
-      'entity_form_mode' => EntityAccessControlHandlerInterface::class,
-      'entity_view_display' => EntityAccessControlHandlerInterface::class,
-      'entity_view_mode' => EntityAccessControlHandlerInterface::class,
+      'base_field_override' => \Drupal\Core\Entity\EntityAccessControlHandlerInterface::class,
+      'date_format' => \Drupal\Core\Entity\EntityAccessControlHandlerInterface::class,
+      'entity_form_display' => \Drupal\Core\Entity\EntityAccessControlHandlerInterface::class,
+      'entity_form_mode' => \Drupal\Core\Entity\EntityAccessControlHandlerInterface::class,
+      'entity_view_display' => \Drupal\Core\Entity\EntityAccessControlHandlerInterface::class,
+      'entity_view_mode' => \Drupal\Core\Entity\EntityAccessControlHandlerInterface::class,
     ])
   );
 
   override(
-    EntityTypeManagerInterface::getListBuilder(0),
+    \Drupal\Core\Entity\EntityTypeManagerInterface::getListBuilder(0),
     map([
-      'date_format' => EntityListBuilderInterface::class,
+      'date_format' => \Drupal\Core\Entity\EntityListBuilderInterface::class,
     ])
   );
 
   override(
-    ContainerInterface::get(0),
+    \Symfony\Component\DependencyInjection\ContainerInterface::get(0),
     map([
-      'accept_negotiation_406' => EventSubscriberInterface::class,
-      'access_arguments_resolver_factory' => AccessArgumentsResolverFactoryInterface::class,
-      'access_check.csrf' => AccessInterface::class,
-      'access_check.custom' => AccessInterface::class,
-      'access_check.default' => AccessInterface::class,
-      'access_check.entity' => AccessInterface::class,
-      'access_check.entity_create' => AccessInterface::class,
-      'access_check.entity_create_any' => AccessInterface::class,
-      'access_check.header.csrf' => AccessCheckInterface::class,
-      'access_check.theme' => AccessInterface::class,
-      'access_manager' => AccessManagerInterface::class,
-      'access_manager.check_provider' => CheckProviderInterface::class,
-      'account_switcher' => AccountSwitcherInterface::class,
-      'ajax_response.attachments_processor' => AttachmentsResponseProcessorInterface::class,
-      'ajax_response.subscriber' => EventSubscriberInterface::class,
-      'anonymous_user_response_subscriber' => EventSubscriberInterface::class,
-      'app.root' => SplString::class,
-      'app.root.factory' => AppRootFactory::class,
-      'asset.css.collection_grouper' => AssetCollectionGrouperInterface::class,
-      'asset.css.collection_optimizer' => AssetCollectionOptimizerInterface::class,
-      'asset.css.collection_renderer' => AssetCollectionRendererInterface::class,
-      'asset.css.dumper' => AssetDumperInterface::class,
-      'asset.css.optimizer' => AssetOptimizerInterface::class,
-      'asset.js.collection_grouper' => AssetCollectionGrouperInterface::class,
-      'asset.js.collection_optimizer' => AssetCollectionOptimizerInterface::class,
-      'asset.js.collection_renderer' => AssetCollectionRendererInterface::class,
-      'asset.js.dumper' => AssetDumperInterface::class,
-      'asset.js.optimizer' => AssetOptimizerInterface::class,
-      'asset.resolver' => AssetResolverInterface::class,
-      'authentication' => AuthenticationProviderInterface::class,
-      'authentication_collector' => AuthenticationCollectorInterface::class,
-      'authentication_subscriber' => EventSubscriberInterface::class,
-      'bare_html_page_renderer' => BareHtmlPageRendererInterface::class,
-      'batch.storage' => BatchStorageInterface::class,
-      'breadcrumb' => ChainBreadcrumbBuilderInterface::class,
-      'cache.backend.apcu' => CacheFactoryInterface::class,
-      'cache.backend.chainedfast' => CacheFactoryInterface::class,
-      'cache.backend.database' => CacheFactoryInterface::class,
-      'cache.backend.memory' => CacheFactoryInterface::class,
-      'cache.backend.php' => CacheFactoryInterface::class,
-      'cache.bootstrap' => CacheBackendInterface::class,
-      'cache.config' => CacheBackendInterface::class,
-      'cache.data' => CacheBackendInterface::class,
-      'cache.default' => CacheBackendInterface::class,
-      'cache.discovery' => CacheBackendInterface::class,
-      'cache.entity' => CacheBackendInterface::class,
-      'cache.menu' => CacheBackendInterface::class,
-      'cache.render' => CacheBackendInterface::class,
-      'cache.static' => CacheBackendInterface::class,
-      'cache_context.cookies' => CalculatedCacheContextInterface::class,
-      'cache_context.headers' => CalculatedCacheContextInterface::class,
-      'cache_context.ip' => CacheContextInterface::class,
-      'cache_context.languages' => CalculatedCacheContextInterface::class,
-      'cache_context.request_format' => RequestFormatCacheContext::class,
-      'cache_context.route' => CacheContextInterface::class,
-      'cache_context.route.menu_active_trails' => CalculatedCacheContextInterface::class,
-      'cache_context.route.name' => CacheContextInterface::class,
-      'cache_context.session' => SessionCacheContext::class,
-      'cache_context.session.exists' => CacheContextInterface::class,
-      'cache_context.theme' => CacheContextInterface::class,
-      'cache_context.timezone' => CacheContextInterface::class,
-      'cache_context.url' => CacheContextInterface::class,
-      'cache_context.url.path' => CacheContextInterface::class,
-      'cache_context.url.path.is_front' => CacheContextInterface::class,
-      'cache_context.url.path.parent' => CacheContextInterface::class,
-      'cache_context.url.query_args' => CalculatedCacheContextInterface::class,
-      'cache_context.url.query_args.pagers' => CalculatedCacheContextInterface::class,
-      'cache_context.url.site' => CacheContextInterface::class,
-      'cache_context.user' => CacheContextInterface::class,
-      'cache_context.user.is_super_user' => CacheContextInterface::class,
-      'cache_context.user.permissions' => CacheContextInterface::class,
-      'cache_context.user.roles' => CalculatedCacheContextInterface::class,
-      'cache_contexts_manager' => CacheContextsManager::class,
-      'cache_factory' => CacheFactoryInterface::class,
-      'cache_router_rebuild_subscriber' => EventSubscriberInterface::class,
-      'cache_tags.invalidator' => CacheTagsInvalidatorInterface::class,
-      'cache_tags.invalidator.checksum' => CacheTagsChecksumInterface::class,
-      'class_resolver' => ClassResolverInterface::class,
-      'client_error_response_subscriber' => EventSubscriberInterface::class,
-      'config.factory' => ConfigFactoryInterface::class,
-      'config.importer_subscriber' => EventSubscriberInterface::class,
-      'config.installer' => ConfigInstallerInterface::class,
-      'config.manager' => ConfigManagerInterface::class,
-      'config.storage' => StorageInterface::class,
-      'config.storage.active' => StorageInterface::class,
-      'config.storage.schema' => StorageInterface::class,
-      'config.storage.snapshot' => StorageInterface::class,
-      'config.storage.staging' => StorageInterface::class,
-      'config.typed' => TypedConfigManagerInterface::class,
-      'config_import_subscriber' => EventSubscriberInterface::class,
-      'config_snapshot_subscriber' => EventSubscriberInterface::class,
-      'container.namespaces' => ArrayAccess::class,
-      'content_type_header_matcher' => RouteFilterInterface1::class,
-      'content_uninstall_validator' => ModuleUninstallValidatorInterface::class,
-      'context.handler' => ContextHandlerInterface::class,
-      'context.repository' => ContextRepositoryInterface::class,
-      'controller.entity_form' => HtmlEntityFormController::class,
-      'controller.form' => HtmlFormController::class,
-      'controller_resolver' => ControllerResolverInterface::class,
-      'country_manager' => CountryManagerInterface::class,
-      'cron' => CronInterface::class,
-      'csrf_token' => CsrfTokenGenerator::class,
-      'current_route_match' => ResettableStackedRouteMatchInterface::class,
-      'current_user' => AccountProxyInterface::class,
-      'database' => Connection::class,
-      'database.replica' => Connection::class,
-      'date.formatter' => DateFormatterInterface::class,
-      'datetime.time' => TimeInterface::class,
-      'diff.formatter' => DiffFormatter::class,
-      'early_rendering_controller_wrapper_subscriber' => EventSubscriberInterface::class,
-      'email.validator' => EmailValidatorInterface::class,
-      'entity.autocomplete_matcher' => EntityAutocompleteMatcher::class,
-      'entity.bundle_config_import_validator' => EventSubscriberInterface::class,
-      'entity.definition_update_manager' => EntityDefinitionUpdateManagerInterface::class,
-      'entity.form_builder' => EntityFormBuilderInterface::class,
-      'entity.last_installed_schema.repository' => EntityLastInstalledSchemaRepositoryInterface::class,
-      'entity.manager' => EntityManagerInterface::class,
-      'entity.query' => QueryFactory::class,
-      'entity.query.config' => QueryFactoryInterface::class,
-      'entity.query.keyvalue' => QueryFactoryInterface::class,
-      'entity.query.null' => QueryFactoryInterface::class,
-      'entity.query.sql' => QueryFactoryInterface::class,
-      'entity.repository' => EntityRepositoryInterface::class,
-      'entity_bundle.listener' => EntityBundleListenerInterface::class,
-      'entity_display.repository' => EntityDisplayRepositoryInterface::class,
-      'entity_field.manager' => EntityFieldManagerInterface::class,
-      'entity_route_subscriber' => EventSubscriberInterface::class,
-      'entity_type.bundle.info' => EntityTypeBundleInfoInterface::class,
-      'entity_type.listener' => EntityTypeListenerInterface::class,
-      'entity_type.manager' => EntityTypeManagerInterface::class,
-      'entity_type.repository' => EntityTypeRepositoryInterface::class,
-      'event_dispatcher' => EventDispatcherInterface::class,
-      'exception.custom_page_html' => EventSubscriberInterface::class,
-      'exception.default' => EventSubscriberInterface::class,
-      'exception.default_html' => EventSubscriberInterface::class,
-      'exception.default_json' => EventSubscriberInterface::class,
-      'exception.enforced_form_response' => EventSubscriberInterface::class,
-      'exception.fast_404_html' => EventSubscriberInterface::class,
-      'exception.logger' => EventSubscriberInterface::class,
-      'exception.needs_installer' => EventSubscriberInterface::class,
-      'exception.test_site' => EventSubscriberInterface::class,
-      'feed.bridge.reader' => ExtensionManagerInterface::class,
-      'feed.bridge.writer' => ExtensionManagerInterface::class,
-      'feed.reader.atomentry' => Entry2::class,
-      'feed.reader.atomfeed' => Feed1::class,
-      'feed.reader.contententry' => Entry1::class,
-      'feed.reader.dublincoreentry' => Entry::class,
-      'feed.reader.dublincorefeed' => Feed::class,
-      'feed.reader.podcastentry' => Entry6::class,
-      'feed.reader.podcastfeed' => Feed2::class,
-      'feed.reader.slashentry' => Entry3::class,
-      'feed.reader.threadentry' => Entry5::class,
-      'feed.reader.wellformedwebentry' => Entry4::class,
-      'feed.writer.atomrendererfeed' => RendererInterface::class,
-      'feed.writer.contentrendererentry' => RendererInterface::class,
-      'feed.writer.dublincorerendererentry' => RendererInterface::class,
-      'feed.writer.dublincorerendererfeed' => RendererInterface::class,
-      'feed.writer.itunesentry' => Entry7::class,
-      'feed.writer.itunesfeed' => Feed3::class,
-      'feed.writer.itunesrendererentry' => RendererInterface::class,
-      'feed.writer.itunesrendererfeed' => RendererInterface::class,
-      'feed.writer.slashrendererentry' => RendererInterface::class,
-      'feed.writer.threadingrendererentry' => RendererInterface::class,
-      'feed.writer.wellformedwebrendererentry' => RendererInterface::class,
-      'field_definition.listener' => FieldDefinitionListenerInterface::class,
-      'field_storage_definition.listener' => FieldStorageDefinitionListenerInterface::class,
-      'field_uninstall_validator' => ModuleUninstallValidatorInterface::class,
-      'file.mime_type.guesser' => MimeTypeGuesserInterface::class,
-      'file.mime_type.guesser.extension' => MimeTypeGuesserInterface::class,
-      'file_system' => FileSystemInterface::class,
-      'finish_response_subscriber' => EventSubscriberInterface::class,
-      'flood' => FloodInterface::class,
-      'form_ajax_response_builder' => FormAjaxResponseBuilderInterface::class,
-      'form_ajax_subscriber' => EventSubscriberInterface::class,
-      'form_builder' => FormBuilderInterface::class,
-      'form_cache' => FormCacheInterface::class,
-      'form_error_handler' => FormErrorHandlerInterface::class,
-      'form_submitter' => FormSubmitterInterface::class,
-      'form_validator' => FormValidatorInterface::class,
-      'html_response.attachments_processor' => AttachmentsResponseProcessorInterface::class,
-      'html_response.placeholder_strategy_subscriber' => EventSubscriberInterface::class,
-      'html_response.subscriber' => EventSubscriberInterface::class,
-      'http_client' => ClientInterface::class,
-      'http_client_factory' => ClientFactory::class,
-      'http_handler_stack' => HandlerStack::class,
-      'http_handler_stack_configurator' => HandlerStackConfigurator::class,
-      'http_kernel' => HttpKernelInterface::class,
-      'http_kernel.basic' => HttpKernelInterface::class,
-      'http_middleware.cors' => HttpKernelInterface::class,
-      'http_middleware.kernel_pre_handle' => HttpKernelInterface::class,
-      'http_middleware.negotiation' => HttpKernelInterface::class,
-      'http_middleware.reverse_proxy' => HttpKernelInterface::class,
-      'http_middleware.session' => HttpKernelInterface::class,
-      'image.factory' => ImageFactory::class,
-      'image.toolkit.manager' => CacheableDependencyInterface::class,
-      'image.toolkit.operation.manager' => ImageToolkitOperationManagerInterface::class,
-      'info_parser' => InfoParserInterface::class,
-      'kernel_destruct_subscriber' => EventSubscriberInterface::class,
-      'keyvalue' => KeyValueFactoryInterface::class,
-      'keyvalue.database' => KeyValueFactoryInterface::class,
-      'keyvalue.expirable' => KeyValueExpirableFactoryInterface::class,
-      'keyvalue.expirable.database' => KeyValueExpirableFactoryInterface::class,
-      'language.current_language_context' => ContextProviderInterface::class,
-      'language.default' => LanguageDefault::class,
-      'language_manager' => LanguageManagerInterface::class,
-      'library.dependency_resolver' => LibraryDependencyResolverInterface::class,
-      'library.discovery' => LibraryDiscoveryInterface::class,
-      'library.discovery.collector' => CacheCollectorInterface::class,
-      'library.discovery.parser' => LibraryDiscoveryParser::class,
-      'link_generator' => LinkGeneratorInterface::class,
-      'lock' => LockBackendInterface::class,
-      'lock.persistent' => LockBackendInterface::class,
-      'logger.channel.file' => LoggerChannelInterface::class,
-      'logger.channel_base' => LoggerChannelInterface::class,
-      'logger.factory' => LoggerChannelFactoryInterface::class,
-      'logger.log_message_parser' => LogMessageParserInterface::class,
-      'main_content_renderer.ajax' => MainContentRendererInterface::class,
-      'main_content_renderer.dialog' => MainContentRendererInterface::class,
-      'main_content_renderer.html' => MainContentRendererInterface::class,
-      'main_content_renderer.modal' => MainContentRendererInterface::class,
-      'main_content_view_subscriber' => EventSubscriberInterface::class,
-      'maintenance_mode' => MaintenanceModeInterface::class,
-      'maintenance_mode_subscriber' => EventSubscriberInterface::class,
-      'menu.active_trail' => MenuActiveTrailInterface::class,
-      'menu.default_tree_manipulators' => DefaultMenuLinkTreeManipulators::class,
-      'menu.link_tree' => MenuLinkTreeInterface::class,
-      'menu.parent_form_selector' => MenuParentFormSelectorInterface::class,
-      'menu.rebuild_subscriber' => EventSubscriberInterface::class,
-      'menu.tree_storage' => MenuTreeStorageInterface::class,
-      'menu_link.static.overrides' => StaticMenuLinkOverridesInterface::class,
-      'method_filter' => RouteFilterInterface1::class,
-      'module_handler' => ModuleHandlerInterface::class,
-      'module_installer' => ModuleInstallerInterface::class,
-      'options_request_listener' => EventSubscriberInterface::class,
-      'page_cache_kill_switch' => ResponsePolicyInterface::class,
-      'page_cache_no_cache_routes' => ResponsePolicyInterface::class,
-      'page_cache_no_server_error' => ResponsePolicyInterface::class,
-      'page_cache_request_policy' => RequestPolicyInterface::class,
-      'page_cache_response_policy' => ChainResponsePolicyInterface::class,
-      'paramconverter.configentity_admin' => ParamConverterInterface::class,
-      'paramconverter.entity' => ParamConverterInterface::class,
-      'paramconverter.entity_revision' => ParamConverterInterface::class,
-      'paramconverter.menu_link' => ParamConverterInterface::class,
-      'paramconverter_manager' => ParamConverterManagerInterface::class,
-      'paramconverter_subscriber' => EventSubscriberInterface::class,
-      'password' => PasswordInterface::class,
-      'path.alias_manager' => AliasManagerInterface::class,
-      'path.alias_storage' => AliasStorageInterface::class,
-      'path.alias_whitelist' => AliasWhitelistInterface::class,
-      'path.current' => CurrentPathStack::class,
-      'path.matcher' => PathMatcherInterface::class,
-      'path.validator' => PathValidatorInterface::class,
-      'path_processor_alias' => InboundPathProcessorInterface::class,
-      'path_processor_decode' => InboundPathProcessorInterface::class,
-      'path_processor_front' => InboundPathProcessorInterface::class,
-      'path_processor_manager' => InboundPathProcessorInterface::class,
-      'path_subscriber' => EventSubscriberInterface::class,
-      'pgsql.entity.query.sql' => QueryFactoryInterface::class,
-      'placeholder_strategy' => PlaceholderStrategyInterface::class,
-      'placeholder_strategy.single_flush' => PlaceholderStrategyInterface::class,
-      'plugin.cache_clearer' => CachedDiscoveryClearerInterface::class,
-      'plugin.manager.action' => CacheableDependencyInterface::class,
-      'plugin.manager.archiver' => CacheableDependencyInterface::class,
-      'plugin.manager.block' => BlockManagerInterface::class,
-      'plugin.manager.condition' => ExecutableManagerInterface::class,
-      'plugin.manager.display_variant' => CacheableDependencyInterface::class,
-      'plugin.manager.element_info' => ElementInfoManagerInterface::class,
-      'plugin.manager.entity_reference_selection' => SelectionPluginManagerInterface::class,
-      'plugin.manager.field.field_type' => FieldTypePluginManagerInterface::class,
-      'plugin.manager.field.formatter' => CacheableDependencyInterface::class,
-      'plugin.manager.field.widget' => CacheableDependencyInterface::class,
-      'plugin.manager.link_relation_type' => CacheableDependencyInterface::class,
-      'plugin.manager.mail' => MailManagerInterface::class,
-      'plugin.manager.menu.contextual_link' => ContextualLinkManagerInterface::class,
-      'plugin.manager.menu.link' => MenuLinkManagerInterface::class,
-      'plugin.manager.menu.local_action' => LocalActionManagerInterface::class,
-      'plugin.manager.menu.local_task' => LocalTaskManagerInterface::class,
-      'plugin.manager.queue_worker' => QueueWorkerManagerInterface::class,
-      'plugin_form.factory' => PluginFormFactoryInterface::class,
-      'private_key' => PrivateKey::class,
-      'psr7.http_foundation_factory' => HttpFoundationFactoryInterface::class,
-      'psr7.http_message_factory' => HttpMessageFactoryInterface::class,
-      'psr_response_view_subscriber' => EventSubscriberInterface::class,
-      'queue' => QueueFactory::class,
-      'queue.database' => QueueDatabaseFactory::class,
-      'redirect.destination' => RedirectDestinationInterface::class,
-      'redirect_leading_slashes_subscriber' => EventSubscriberInterface::class,
-      'redirect_response_subscriber' => EventSubscriberInterface::class,
-      'render_cache' => RenderCacheInterface::class,
-      'render_placeholder_generator' => PlaceholderGeneratorInterface::class,
-      'renderer' => RendererInterface1::class,
-      'replica_database_ignore__subscriber' => EventSubscriberInterface::class,
-      'request_close_subscriber' => EventSubscriberInterface::class,
-      'request_format_route_filter' => RouteFilterInterface1::class,
-      'request_stack' => RequestStack::class,
-      'required_module_uninstall_validator' => ModuleUninstallValidatorInterface::class,
-      'resolver_manager.entity' => EntityResolverManager::class,
-      'response_filter.active_link' => EventSubscriberInterface::class,
-      'response_filter.rss.relative_url' => EventSubscriberInterface::class,
-      'response_generator_subscriber' => EventSubscriberInterface::class,
-      'route_access_response_subscriber' => EventSubscriberInterface::class,
-      'route_enhancer.entity' => RouteEnhancerInterface1::class,
-      'route_enhancer.entity_revision' => RouteEnhancerInterface1::class,
-      'route_enhancer.form' => RouteEnhancerInterface1::class,
-      'route_enhancer.lazy_collector' => RouteEnhancerInterface::class,
-      'route_enhancer.param_conversion' => RouteEnhancerInterface1::class,
-      'route_enhancer_subscriber' => EventSubscriberInterface::class,
-      'route_filter.lazy_collector' => RouteFilterInterface::class,
-      'route_filter_subscriber' => EventSubscriberInterface::class,
-      'route_http_method_subscriber' => EventSubscriberInterface::class,
-      'route_processor_csrf' => OutboundRouteProcessorInterface::class,
-      'route_processor_current' => OutboundRouteProcessorInterface::class,
-      'route_processor_manager' => OutboundRouteProcessorInterface::class,
-      'route_special_attributes_subscriber' => EventSubscriberInterface::class,
-      'route_subscriber.entity' => EventSubscriberInterface::class,
-      'route_subscriber.module' => EventSubscriberInterface::class,
-      'router' => AccessAwareRouterInterface::class,
-      'router.admin_context' => AdminContext::class,
-      'router.builder' => RouteBuilderInterface::class,
-      'router.dumper' => MatcherDumperInterface::class,
-      'router.dynamic' => ChainedRouterInterface::class,
-      'router.matcher' => RequestMatcherInterface::class,
-      'router.matcher.final_matcher' => UrlMatcherInterface::class,
-      'router.no_access_checks' => RouterInterface::class,
-      'router.path_roots_subscriber' => EventSubscriberInterface::class,
-      'router.request_context' => RequestContext::class,
-      'router.route_preloader' => EventSubscriberInterface::class,
-      'router.route_provider' => RouteProviderInterface::class,
-      'router.route_provider.lazy_builder' => PreloadableRouteProviderInterface::class,
-      'router_listener' => EventSubscriberInterface::class,
-      'serialization.json' => SerializationInterface::class,
-      'serialization.phpserialize' => SerializationInterface::class,
-      'serialization.yaml' => SerializationInterface::class,
-      'session' => SessionInterface::class,
-      'session.attribute_bag' => AttributeBagInterface::class,
-      'session.flash_bag' => FlashBagInterface::class,
-      'session_configuration' => SessionConfigurationInterface::class,
-      'session_handler.storage' => SessionHandlerInterface::class,
-      'session_handler.write_check' => SessionHandlerInterface::class,
-      'session_handler.write_safe' => WriteSafeSessionHandlerInterface::class,
-      'session_manager' => SessionManagerInterface::class,
-      'session_manager.metadata_bag' => SessionBagInterface::class,
-      'settings' => Settings::class,
-      'site.path' => SplString::class,
-      'site.path.factory' => SitePathFactory::class,
-      'state' => StateInterface::class,
-      'stream_wrapper.public' => PhpStreamWrapperInterface::class,
-      'stream_wrapper.temporary' => PhpStreamWrapperInterface::class,
-      'stream_wrapper_manager' => StreamWrapperManagerInterface::class,
-      'string_translation' => TranslationInterface::class,
-      'string_translator.custom_strings' => TranslatorInterface::class,
-      'theme.initialization' => ThemeInitializationInterface::class,
-      'theme.manager' => ThemeManagerInterface::class,
-      'theme.negotiator' => ThemeNegotiatorInterface::class,
-      'theme.negotiator.ajax_base_page' => ThemeNegotiatorInterface::class,
-      'theme.negotiator.default' => ThemeNegotiatorInterface::class,
-      'theme.registry' => DestructableInterface::class,
-      'theme_handler' => ThemeHandlerInterface::class,
-      'theme_installer' => ThemeInstallerInterface::class,
-      'title_resolver' => TitleResolverInterface::class,
-      'token' => Token::class,
-      'transliteration' => TransliterationInterface::class,
-      'twig' => TwigEnvironment::class,
-      'twig.extension' => Twig_ExtensionInterface::class,
-      'twig.extension.debug' => Twig_ExtensionInterface::class,
-      'twig.loader' => Twig_LoaderInterface::class,
-      'twig.loader.filesystem' => Twig_ExistsLoaderInterface::class,
-      'twig.loader.string' => Twig_ExistsLoaderInterface::class,
-      'twig.loader.theme_registry' => Twig_ExistsLoaderInterface::class,
-      'typed_data_manager' => TypedDataManagerInterface::class,
-      'unrouted_url_assembler' => UnroutedUrlAssemblerInterface::class,
-      'update.post_update_registry' => UpdateRegistry::class,
-      'update.post_update_registry_factory' => UpdateRegistryFactory::class,
-      'url_generator' => UrlGeneratorInterface::class,
-      'url_generator.non_bubbling' => UrlGeneratorInterface::class,
-      'user_permissions_hash_generator' => PermissionsHashGeneratorInterface::class,
-      'uuid' => UuidInterface::class,
-      'validation.constraint' => CacheableDependencyInterface::class,
+      'accept_negotiation_406' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'access_arguments_resolver_factory' => \Drupal\Core\Access\AccessArgumentsResolverFactoryInterface::class,
+      'access_check.csrf' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'access_check.custom' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'access_check.default' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'access_check.entity' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'access_check.entity_create' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'access_check.entity_create_any' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'access_check.header.csrf' => \Drupal\Core\Access\AccessCheckInterface::class,
+      'access_check.theme' => \Drupal\Core\Routing\Access\AccessInterface::class,
+      'access_manager' => \Drupal\Core\Access\AccessManagerInterface::class,
+      'access_manager.check_provider' => \Drupal\Core\Access\CheckProviderInterface::class,
+      'account_switcher' => \Drupal\Core\Session\AccountSwitcherInterface::class,
+      'ajax_response.attachments_processor' => \Drupal\Core\Render\AttachmentsResponseProcessorInterface::class,
+      'ajax_response.subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'anonymous_user_response_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'app.root' => \SplString::class,
+      'app.root.factory' => \Drupal\Core\AppRootFactory::class,
+      'asset.css.collection_grouper' => \Drupal\Core\Asset\AssetCollectionGrouperInterface::class,
+      'asset.css.collection_optimizer' => \Drupal\Core\Asset\AssetCollectionOptimizerInterface::class,
+      'asset.css.collection_renderer' => \Drupal\Core\Asset\AssetCollectionRendererInterface::class,
+      'asset.css.dumper' => \Drupal\Core\Asset\AssetDumperInterface::class,
+      'asset.css.optimizer' => \Drupal\Core\Asset\AssetOptimizerInterface::class,
+      'asset.js.collection_grouper' => \Drupal\Core\Asset\AssetCollectionGrouperInterface::class,
+      'asset.js.collection_optimizer' => \Drupal\Core\Asset\AssetCollectionOptimizerInterface::class,
+      'asset.js.collection_renderer' => \Drupal\Core\Asset\AssetCollectionRendererInterface::class,
+      'asset.js.dumper' => \Drupal\Core\Asset\AssetDumperInterface::class,
+      'asset.js.optimizer' => \Drupal\Core\Asset\AssetOptimizerInterface::class,
+      'asset.resolver' => \Drupal\Core\Asset\AssetResolverInterface::class,
+      'authentication' => \Drupal\Core\Authentication\AuthenticationProviderInterface::class,
+      'authentication_collector' => \Drupal\Core\Authentication\AuthenticationCollectorInterface::class,
+      'authentication_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'bare_html_page_renderer' => \Drupal\Core\Render\BareHtmlPageRendererInterface::class,
+      'batch.storage' => \Drupal\Core\Batch\BatchStorageInterface::class,
+      'breadcrumb' => \Drupal\Core\Breadcrumb\ChainBreadcrumbBuilderInterface::class,
+      'cache.backend.apcu' => \Drupal\Core\Cache\CacheFactoryInterface::class,
+      'cache.backend.chainedfast' => \Drupal\Core\Cache\CacheFactoryInterface::class,
+      'cache.backend.database' => \Drupal\Core\Cache\CacheFactoryInterface::class,
+      'cache.backend.memory' => \Drupal\Core\Cache\CacheFactoryInterface::class,
+      'cache.backend.php' => \Drupal\Core\Cache\CacheFactoryInterface::class,
+      'cache.bootstrap' => \Drupal\Core\Cache\CacheBackendInterface::class,
+      'cache.config' => \Drupal\Core\Cache\CacheBackendInterface::class,
+      'cache.data' => \Drupal\Core\Cache\CacheBackendInterface::class,
+      'cache.default' => \Drupal\Core\Cache\CacheBackendInterface::class,
+      'cache.discovery' => \Drupal\Core\Cache\CacheBackendInterface::class,
+      'cache.entity' => \Drupal\Core\Cache\CacheBackendInterface::class,
+      'cache.menu' => \Drupal\Core\Cache\CacheBackendInterface::class,
+      'cache.render' => \Drupal\Core\Cache\CacheBackendInterface::class,
+      'cache.static' => \Drupal\Core\Cache\CacheBackendInterface::class,
+      'cache_context.cookies' => \Drupal\Core\Cache\Context\CalculatedCacheContextInterface::class,
+      'cache_context.headers' => \Drupal\Core\Cache\Context\CalculatedCacheContextInterface::class,
+      'cache_context.ip' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.languages' => \Drupal\Core\Cache\Context\CalculatedCacheContextInterface::class,
+      'cache_context.request_format' => \Drupal\Core\Cache\Context\RequestFormatCacheContext::class,
+      'cache_context.route' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.route.menu_active_trails' => \Drupal\Core\Cache\Context\CalculatedCacheContextInterface::class,
+      'cache_context.route.name' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.session' => \Drupal\Core\Cache\Context\SessionCacheContext::class,
+      'cache_context.session.exists' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.theme' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.timezone' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.url' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.url.path' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.url.path.is_front' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.url.path.parent' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.url.query_args' => \Drupal\Core\Cache\Context\CalculatedCacheContextInterface::class,
+      'cache_context.url.query_args.pagers' => \Drupal\Core\Cache\Context\CalculatedCacheContextInterface::class,
+      'cache_context.url.site' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.user' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.user.is_super_user' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.user.permissions' => \Drupal\Core\Cache\Context\CacheContextInterface::class,
+      'cache_context.user.roles' => \Drupal\Core\Cache\Context\CalculatedCacheContextInterface::class,
+      'cache_contexts_manager' => \Drupal\Core\Cache\Context\CacheContextsManager::class,
+      'cache_factory' => \Drupal\Core\Cache\CacheFactoryInterface::class,
+      'cache_router_rebuild_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'cache_tags.invalidator' => \Drupal\Core\Cache\CacheTagsInvalidatorInterface::class,
+      'cache_tags.invalidator.checksum' => \Drupal\Core\Cache\CacheTagsChecksumInterface::class,
+      'class_resolver' => \Drupal\Core\DependencyInjection\ClassResolverInterface::class,
+      'client_error_response_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'config.factory' => \Drupal\Core\Config\ConfigFactoryInterface::class,
+      'config.importer_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'config.installer' => \Drupal\Core\Config\ConfigInstallerInterface::class,
+      'config.manager' => \Drupal\Core\Config\ConfigManagerInterface::class,
+      'config.storage' => \Drupal\Core\Config\StorageInterface::class,
+      'config.storage.active' => \Drupal\Core\Config\StorageInterface::class,
+      'config.storage.schema' => \Drupal\Core\Config\StorageInterface::class,
+      'config.storage.snapshot' => \Drupal\Core\Config\StorageInterface::class,
+      'config.storage.staging' => \Drupal\Core\Config\StorageInterface::class,
+      'config.typed' => \Drupal\Core\Config\TypedConfigManagerInterface::class,
+      'config_import_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'config_snapshot_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'container.namespaces' => \ArrayAccess::class,
+      'content_type_header_matcher' => \Drupal\Core\Routing\RouteFilterInterface::class,
+      'content_uninstall_validator' => \Drupal\Core\Extension\ModuleUninstallValidatorInterface::class,
+      'context.handler' => \Drupal\Core\Plugin\Context\ContextHandlerInterface::class,
+      'context.repository' => \Drupal\Core\Plugin\Context\ContextRepositoryInterface::class,
+      'controller.entity_form' => \Drupal\Core\Entity\HtmlEntityFormController::class,
+      'controller.form' => \Drupal\Core\Controller\HtmlFormController::class,
+      'controller_resolver' => \Drupal\Core\Controller\ControllerResolverInterface::class,
+      'country_manager' => \Drupal\Core\Locale\CountryManagerInterface::class,
+      'cron' => \Drupal\Core\CronInterface::class,
+      'csrf_token' => \Drupal\Core\Access\CsrfTokenGenerator::class,
+      'current_route_match' => \Drupal\Core\Routing\ResettableStackedRouteMatchInterface::class,
+      'current_user' => \Drupal\Core\Session\AccountProxyInterface::class,
+      'database' => \Drupal\Core\Database\Connection::class,
+      'database.replica' => \Drupal\Core\Database\Connection::class,
+      'date.formatter' => \Drupal\Core\Datetime\DateFormatterInterface::class,
+      'datetime.time' => \Drupal\Component\Datetime\TimeInterface::class,
+      'diff.formatter' => \Drupal\Core\Diff\DiffFormatter::class,
+      'early_rendering_controller_wrapper_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'email.validator' => \Egulias\EmailValidator\EmailValidatorInterface::class,
+      'entity.autocomplete_matcher' => \Drupal\Core\Entity\EntityAutocompleteMatcher::class,
+      'entity.bundle_config_import_validator' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'entity.definition_update_manager' => \Drupal\Core\Entity\EntityDefinitionUpdateManagerInterface::class,
+      'entity.form_builder' => \Drupal\Core\Entity\EntityFormBuilderInterface::class,
+      'entity.last_installed_schema.repository' => \Drupal\Core\Entity\EntityLastInstalledSchemaRepositoryInterface::class,
+      'entity.manager' => \Drupal\Core\Entity\EntityManagerInterface::class,
+      'entity.query' => \Drupal\Core\Entity\Query\QueryFactory::class,
+      'entity.query.config' => \Drupal\Core\Entity\Query\QueryFactoryInterface::class,
+      'entity.query.keyvalue' => \Drupal\Core\Entity\Query\QueryFactoryInterface::class,
+      'entity.query.null' => \Drupal\Core\Entity\Query\QueryFactoryInterface::class,
+      'entity.query.sql' => \Drupal\Core\Entity\Query\QueryFactoryInterface::class,
+      'entity.repository' => \Drupal\Core\Entity\EntityRepositoryInterface::class,
+      'entity_bundle.listener' => \Drupal\Core\Entity\EntityBundleListenerInterface::class,
+      'entity_display.repository' => \Drupal\Core\Entity\EntityDisplayRepositoryInterface::class,
+      'entity_field.manager' => \Drupal\Core\Entity\EntityFieldManagerInterface::class,
+      'entity_route_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'entity_type.bundle.info' => \Drupal\Core\Entity\EntityTypeBundleInfoInterface::class,
+      'entity_type.listener' => \Drupal\Core\Entity\EntityTypeListenerInterface::class,
+      'entity_type.manager' => \Drupal\Core\Entity\EntityTypeManagerInterface::class,
+      'entity_type.repository' => \Drupal\Core\Entity\EntityTypeRepositoryInterface::class,
+      'event_dispatcher' => \Symfony\Component\EventDispatcher\EventDispatcherInterface::class,
+      'exception.custom_page_html' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'exception.default' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'exception.default_html' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'exception.default_json' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'exception.enforced_form_response' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'exception.fast_404_html' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'exception.logger' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'exception.needs_installer' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'exception.test_site' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'feed.bridge.reader' => \Zend\Feed\Reader\ExtensionManagerInterface::class,
+      'feed.bridge.writer' => \Zend\Feed\Reader\ExtensionManagerInterface::class,
+      'feed.reader.atomentry' => \Zend\Feed\Reader\Extension\Atom\Entry::class,
+      'feed.reader.atomfeed' => \Zend\Feed\Reader\Extension\Atom\Feed::class,
+      'feed.reader.contententry' => \Zend\Feed\Reader\Extension\Content\Entry::class,
+      'feed.reader.dublincoreentry' => \Zend\Feed\Reader\Extension\DublinCore\Entry::class,
+      'feed.reader.dublincorefeed' => \Zend\Feed\Reader\Extension\DublinCore\Feed::class,
+      'feed.reader.podcastentry' => \Zend\Feed\Reader\Extension\Podcast\Entry::class,
+      'feed.reader.podcastfeed' => \Zend\Feed\Reader\Extension\Podcast\Feed::class,
+      'feed.reader.slashentry' => \Zend\Feed\Reader\Extension\Slash\Entry::class,
+      'feed.reader.threadentry' => \Zend\Feed\Reader\Extension\Thread\Entry::class,
+      'feed.reader.wellformedwebentry' => \Zend\Feed\Reader\Extension\WellFormedWeb\Entry::class,
+      'feed.writer.atomrendererfeed' => \Zend\Feed\Writer\Extension\RendererInterface::class,
+      'feed.writer.contentrendererentry' => \Zend\Feed\Writer\Extension\RendererInterface::class,
+      'feed.writer.dublincorerendererentry' => \Zend\Feed\Writer\Extension\RendererInterface::class,
+      'feed.writer.dublincorerendererfeed' => \Zend\Feed\Writer\Extension\RendererInterface::class,
+      'feed.writer.itunesentry' => \Zend\Feed\Writer\Extension\ITunes\Entry::class,
+      'feed.writer.itunesfeed' => \Zend\Feed\Writer\Extension\ITunes\Feed::class,
+      'feed.writer.itunesrendererentry' => \Zend\Feed\Writer\Extension\RendererInterface::class,
+      'feed.writer.itunesrendererfeed' => \Zend\Feed\Writer\Extension\RendererInterface::class,
+      'feed.writer.slashrendererentry' => \Zend\Feed\Writer\Extension\RendererInterface::class,
+      'feed.writer.threadingrendererentry' => \Zend\Feed\Writer\Extension\RendererInterface::class,
+      'feed.writer.wellformedwebrendererentry' => \Zend\Feed\Writer\Extension\RendererInterface::class,
+      'field_definition.listener' => \Drupal\Core\Field\FieldDefinitionListenerInterface::class,
+      'field_storage_definition.listener' => \Drupal\Core\Field\FieldStorageDefinitionListenerInterface::class,
+      'field_uninstall_validator' => \Drupal\Core\Extension\ModuleUninstallValidatorInterface::class,
+      'file.mime_type.guesser' => \Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface::class,
+      'file.mime_type.guesser.extension' => \Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface::class,
+      'file_system' => \Drupal\Core\File\FileSystemInterface::class,
+      'finish_response_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'flood' => \Drupal\Core\Flood\FloodInterface::class,
+      'form_ajax_response_builder' => \Drupal\Core\Form\FormAjaxResponseBuilderInterface::class,
+      'form_ajax_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'form_builder' => \Drupal\Core\Form\FormBuilderInterface::class,
+      'form_cache' => \Drupal\Core\Form\FormCacheInterface::class,
+      'form_error_handler' => \Drupal\Core\Form\FormErrorHandlerInterface::class,
+      'form_submitter' => \Drupal\Core\Form\FormSubmitterInterface::class,
+      'form_validator' => \Drupal\Core\Form\FormValidatorInterface::class,
+      'html_response.attachments_processor' => \Drupal\Core\Render\AttachmentsResponseProcessorInterface::class,
+      'html_response.placeholder_strategy_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'html_response.subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'http_client' => \GuzzleHttp\ClientInterface::class,
+      'http_client_factory' => \Drupal\Core\Http\ClientFactory::class,
+      'http_handler_stack' => \GuzzleHttp\HandlerStack::class,
+      'http_handler_stack_configurator' => \Drupal\Core\Http\HandlerStackConfigurator::class,
+      'http_kernel' => \Symfony\Component\HttpKernel\HttpKernelInterface::class,
+      'http_kernel.basic' => \Symfony\Component\HttpKernel\HttpKernelInterface::class,
+      'http_middleware.cors' => \Symfony\Component\HttpKernel\HttpKernelInterface::class,
+      'http_middleware.kernel_pre_handle' => \Symfony\Component\HttpKernel\HttpKernelInterface::class,
+      'http_middleware.negotiation' => \Symfony\Component\HttpKernel\HttpKernelInterface::class,
+      'http_middleware.reverse_proxy' => \Symfony\Component\HttpKernel\HttpKernelInterface::class,
+      'http_middleware.session' => \Symfony\Component\HttpKernel\HttpKernelInterface::class,
+      'image.factory' => \Drupal\Core\Image\ImageFactory::class,
+      'image.toolkit.manager' => \Drupal\Core\Cache\CacheableDependencyInterface::class,
+      'image.toolkit.operation.manager' => \Drupal\Core\ImageToolkit\ImageToolkitOperationManagerInterface::class,
+      'info_parser' => \Drupal\Core\Extension\InfoParserInterface::class,
+      'kernel_destruct_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'keyvalue' => \Drupal\Core\KeyValueStore\KeyValueFactoryInterface::class,
+      'keyvalue.database' => \Drupal\Core\KeyValueStore\KeyValueFactoryInterface::class,
+      'keyvalue.expirable' => \Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface::class,
+      'keyvalue.expirable.database' => \Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface::class,
+      'language.current_language_context' => \Drupal\Core\Plugin\Context\ContextProviderInterface::class,
+      'language.default' => \Drupal\Core\Language\LanguageDefault::class,
+      'language_manager' => \Drupal\Core\Language\LanguageManagerInterface::class,
+      'library.dependency_resolver' => \Drupal\Core\Asset\LibraryDependencyResolverInterface::class,
+      'library.discovery' => \Drupal\Core\Asset\LibraryDiscoveryInterface::class,
+      'library.discovery.collector' => \Drupal\Core\Cache\CacheCollectorInterface::class,
+      'library.discovery.parser' => \Drupal\Core\Asset\LibraryDiscoveryParser::class,
+      'link_generator' => \Drupal\Core\Utility\LinkGeneratorInterface::class,
+      'lock' => \Drupal\Core\Lock\LockBackendInterface::class,
+      'lock.persistent' => \Drupal\Core\Lock\LockBackendInterface::class,
+      'logger.channel.file' => \Drupal\Core\Logger\LoggerChannelInterface::class,
+      'logger.channel_base' => \Drupal\Core\Logger\LoggerChannelInterface::class,
+      'logger.factory' => \Drupal\Core\Logger\LoggerChannelFactoryInterface::class,
+      'logger.log_message_parser' => \Drupal\Core\Logger\LogMessageParserInterface::class,
+      'main_content_renderer.ajax' => \Drupal\Core\Render\MainContent\MainContentRendererInterface::class,
+      'main_content_renderer.dialog' => \Drupal\Core\Render\MainContent\MainContentRendererInterface::class,
+      'main_content_renderer.html' => \Drupal\Core\Render\MainContent\MainContentRendererInterface::class,
+      'main_content_renderer.modal' => \Drupal\Core\Render\MainContent\MainContentRendererInterface::class,
+      'main_content_view_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'maintenance_mode' => \Drupal\Core\Site\MaintenanceModeInterface::class,
+      'maintenance_mode_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'menu.active_trail' => \Drupal\Core\Menu\MenuActiveTrailInterface::class,
+      'menu.default_tree_manipulators' => \Drupal\Core\Menu\DefaultMenuLinkTreeManipulators::class,
+      'menu.link_tree' => \Drupal\Core\Menu\MenuLinkTreeInterface::class,
+      'menu.parent_form_selector' => \Drupal\Core\Menu\MenuParentFormSelectorInterface::class,
+      'menu.rebuild_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'menu.tree_storage' => \Drupal\Core\Menu\MenuTreeStorageInterface::class,
+      'menu_link.static.overrides' => \Drupal\Core\Menu\StaticMenuLinkOverridesInterface::class,
+      'method_filter' => \Drupal\Core\Routing\RouteFilterInterface::class,
+      'module_handler' => \Drupal\Core\Extension\ModuleHandlerInterface::class,
+      'module_installer' => \Drupal\Core\Extension\ModuleInstallerInterface::class,
+      'options_request_listener' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'page_cache_kill_switch' => \Drupal\Core\PageCache\ResponsePolicyInterface::class,
+      'page_cache_no_cache_routes' => \Drupal\Core\PageCache\ResponsePolicyInterface::class,
+      'page_cache_no_server_error' => \Drupal\Core\PageCache\ResponsePolicyInterface::class,
+      'page_cache_request_policy' => \Drupal\Core\PageCache\RequestPolicyInterface::class,
+      'page_cache_response_policy' => \Drupal\Core\PageCache\ChainResponsePolicyInterface::class,
+      'paramconverter.configentity_admin' => \Drupal\Core\ParamConverter\ParamConverterInterface::class,
+      'paramconverter.entity' => \Drupal\Core\ParamConverter\ParamConverterInterface::class,
+      'paramconverter.entity_revision' => \Drupal\Core\ParamConverter\ParamConverterInterface::class,
+      'paramconverter.menu_link' => \Drupal\Core\ParamConverter\ParamConverterInterface::class,
+      'paramconverter_manager' => \Drupal\Core\ParamConverter\ParamConverterManagerInterface::class,
+      'paramconverter_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'password' => \Drupal\Core\Password\PasswordInterface::class,
+      'path.alias_manager' => \Drupal\Core\Path\AliasManagerInterface::class,
+      'path.alias_storage' => \Drupal\Core\Path\AliasStorageInterface::class,
+      'path.alias_whitelist' => \Drupal\Core\Path\AliasWhitelistInterface::class,
+      'path.current' => \Drupal\Core\Path\CurrentPathStack::class,
+      'path.matcher' => \Drupal\Core\Path\PathMatcherInterface::class,
+      'path.validator' => \Drupal\Core\Path\PathValidatorInterface::class,
+      'path_processor_alias' => \Drupal\Core\PathProcessor\InboundPathProcessorInterface::class,
+      'path_processor_decode' => \Drupal\Core\PathProcessor\InboundPathProcessorInterface::class,
+      'path_processor_front' => \Drupal\Core\PathProcessor\InboundPathProcessorInterface::class,
+      'path_processor_manager' => \Drupal\Core\PathProcessor\InboundPathProcessorInterface::class,
+      'path_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'pgsql.entity.query.sql' => \Drupal\Core\Entity\Query\QueryFactoryInterface::class,
+      'placeholder_strategy' => \Drupal\Core\Render\Placeholder\PlaceholderStrategyInterface::class,
+      'placeholder_strategy.single_flush' => \Drupal\Core\Render\Placeholder\PlaceholderStrategyInterface::class,
+      'plugin.cache_clearer' => \Drupal\Core\Plugin\CachedDiscoveryClearerInterface::class,
+      'plugin.manager.action' => \Drupal\Core\Cache\CacheableDependencyInterface::class,
+      'plugin.manager.archiver' => \Drupal\Core\Cache\CacheableDependencyInterface::class,
+      'plugin.manager.block' => \Drupal\Core\Block\BlockManagerInterface::class,
+      'plugin.manager.condition' => \Drupal\Core\Executable\ExecutableManagerInterface::class,
+      'plugin.manager.display_variant' => \Drupal\Core\Cache\CacheableDependencyInterface::class,
+      'plugin.manager.element_info' => \Drupal\Core\Render\ElementInfoManagerInterface::class,
+      'plugin.manager.entity_reference_selection' => \Drupal\Core\Entity\EntityReferenceSelection\SelectionPluginManagerInterface::class,
+      'plugin.manager.field.field_type' => \Drupal\Core\Field\FieldTypePluginManagerInterface::class,
+      'plugin.manager.field.formatter' => \Drupal\Core\Cache\CacheableDependencyInterface::class,
+      'plugin.manager.field.widget' => \Drupal\Core\Cache\CacheableDependencyInterface::class,
+      'plugin.manager.link_relation_type' => \Drupal\Core\Cache\CacheableDependencyInterface::class,
+      'plugin.manager.mail' => \Drupal\Core\Mail\MailManagerInterface::class,
+      'plugin.manager.menu.contextual_link' => \Drupal\Core\Menu\ContextualLinkManagerInterface::class,
+      'plugin.manager.menu.link' => \Drupal\Core\Menu\MenuLinkManagerInterface::class,
+      'plugin.manager.menu.local_action' => \Drupal\Core\Menu\LocalActionManagerInterface::class,
+      'plugin.manager.menu.local_task' => \Drupal\Core\Menu\LocalTaskManagerInterface::class,
+      'plugin.manager.queue_worker' => \Drupal\Core\Queue\QueueWorkerManagerInterface::class,
+      'plugin_form.factory' => \Drupal\Core\Plugin\PluginFormFactoryInterface::class,
+      'private_key' => \Drupal\Core\PrivateKey::class,
+      'psr7.http_foundation_factory' => \Symfony\Bridge\PsrHttpMessage\HttpFoundationFactoryInterface::class,
+      'psr7.http_message_factory' => \Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface::class,
+      'psr_response_view_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'queue' => \Drupal\Core\Queue\QueueFactory::class,
+      'queue.database' => \Drupal\Core\Queue\QueueDatabaseFactory::class,
+      'redirect.destination' => \Drupal\Core\Routing\RedirectDestinationInterface::class,
+      'redirect_leading_slashes_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'redirect_response_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'render_cache' => \Drupal\Core\Render\RenderCacheInterface::class,
+      'render_placeholder_generator' => \Drupal\Core\Render\PlaceholderGeneratorInterface::class,
+      'renderer' => \Drupal\Core\Render\RendererInterface::class,
+      'replica_database_ignore__subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'request_close_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'request_format_route_filter' => \Drupal\Core\Routing\RouteFilterInterface::class,
+      'request_stack' => \Symfony\Component\HttpFoundation\RequestStack::class,
+      'required_module_uninstall_validator' => \Drupal\Core\Extension\ModuleUninstallValidatorInterface::class,
+      'resolver_manager.entity' => \Drupal\Core\Entity\EntityResolverManager::class,
+      'response_filter.active_link' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'response_filter.rss.relative_url' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'response_generator_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'route_access_response_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'route_enhancer.entity' => \Drupal\Core\Routing\Enhancer\RouteEnhancerInterface::class,
+      'route_enhancer.entity_revision' => \Drupal\Core\Routing\Enhancer\RouteEnhancerInterface::class,
+      'route_enhancer.form' => \Drupal\Core\Routing\Enhancer\RouteEnhancerInterface::class,
+      'route_enhancer.lazy_collector' => \Symfony\Cmf\Component\Routing\Enhancer\RouteEnhancerInterface::class,
+      'route_enhancer.param_conversion' => \Drupal\Core\Routing\Enhancer\RouteEnhancerInterface::class,
+      'route_enhancer_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'route_filter.lazy_collector' => \Symfony\Cmf\Component\Routing\NestedMatcher\RouteFilterInterface::class,
+      'route_filter_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'route_http_method_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'route_processor_csrf' => \Drupal\Core\RouteProcessor\OutboundRouteProcessorInterface::class,
+      'route_processor_current' => \Drupal\Core\RouteProcessor\OutboundRouteProcessorInterface::class,
+      'route_processor_manager' => \Drupal\Core\RouteProcessor\OutboundRouteProcessorInterface::class,
+      'route_special_attributes_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'route_subscriber.entity' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'route_subscriber.module' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'router' => \Drupal\Core\Routing\AccessAwareRouterInterface::class,
+      'router.admin_context' => \Drupal\Core\Routing\AdminContext::class,
+      'router.builder' => \Drupal\Core\Routing\RouteBuilderInterface::class,
+      'router.dumper' => \Drupal\Core\Routing\MatcherDumperInterface::class,
+      'router.dynamic' => \Symfony\Cmf\Component\Routing\ChainedRouterInterface::class,
+      'router.matcher' => \Symfony\Component\Routing\Matcher\RequestMatcherInterface::class,
+      'router.matcher.final_matcher' => \Symfony\Component\Routing\Matcher\UrlMatcherInterface::class,
+      'router.no_access_checks' => \Symfony\Component\Routing\RouterInterface::class,
+      'router.path_roots_subscriber' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'router.request_context' => \Drupal\Core\Routing\RequestContext::class,
+      'router.route_preloader' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'router.route_provider' => \Drupal\Core\Routing\RouteProviderInterface::class,
+      'router.route_provider.lazy_builder' => \Drupal\Core\Routing\PreloadableRouteProviderInterface::class,
+      'router_listener' => \Symfony\Component\EventDispatcher\EventSubscriberInterface::class,
+      'serialization.json' => \Drupal\Component\Serialization\SerializationInterface::class,
+      'serialization.phpserialize' => \Drupal\Component\Serialization\SerializationInterface::class,
+      'serialization.yaml' => \Drupal\Component\Serialization\SerializationInterface::class,
+      'session' => \Symfony\Component\HttpFoundation\Session\SessionInterface::class,
+      'session.attribute_bag' => \Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface::class,
+      'session.flash_bag' => \Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface::class,
+      'session_configuration' => \Drupal\Core\Session\SessionConfigurationInterface::class,
+      'session_handler.storage' => \SessionHandlerInterface::class,
+      'session_handler.write_check' => \SessionHandlerInterface::class,
+      'session_handler.write_safe' => \Drupal\Core\Session\WriteSafeSessionHandlerInterface::class,
+      'session_manager' => \Drupal\Core\Session\SessionManagerInterface::class,
+      'session_manager.metadata_bag' => \Symfony\Component\HttpFoundation\Session\SessionBagInterface::class,
+      'settings' => \Drupal\Core\Site\Settings::class,
+      'site.path' => \SplString::class,
+      'site.path.factory' => \Drupal\Core\SitePathFactory::class,
+      'state' => \Drupal\Core\State\StateInterface::class,
+      'stream_wrapper.public' => \Drupal\Core\StreamWrapper\PhpStreamWrapperInterface::class,
+      'stream_wrapper.temporary' => \Drupal\Core\StreamWrapper\PhpStreamWrapperInterface::class,
+      'stream_wrapper_manager' => \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface::class,
+      'string_translation' => \Drupal\Core\StringTranslation\TranslationInterface::class,
+      'string_translator.custom_strings' => \Drupal\Core\StringTranslation\Translator\TranslatorInterface::class,
+      'theme.initialization' => \Drupal\Core\Theme\ThemeInitializationInterface::class,
+      'theme.manager' => \Drupal\Core\Theme\ThemeManagerInterface::class,
+      'theme.negotiator' => \Drupal\Core\Theme\ThemeNegotiatorInterface::class,
+      'theme.negotiator.ajax_base_page' => \Drupal\Core\Theme\ThemeNegotiatorInterface::class,
+      'theme.negotiator.default' => \Drupal\Core\Theme\ThemeNegotiatorInterface::class,
+      'theme.registry' => \Drupal\Core\DestructableInterface::class,
+      'theme_handler' => \Drupal\Core\Extension\ThemeHandlerInterface::class,
+      'theme_installer' => \Drupal\Core\Extension\ThemeInstallerInterface::class,
+      'title_resolver' => \Drupal\Core\Controller\TitleResolverInterface::class,
+      'token' => \Drupal\Core\Utility\Token::class,
+      'transliteration' => \Drupal\Component\Transliteration\TransliterationInterface::class,
+      'twig' => \Drupal\Core\Template\TwigEnvironment::class,
+      'twig.extension' => \Twig_ExtensionInterface::class,
+      'twig.extension.debug' => \Twig_ExtensionInterface::class,
+      'twig.loader' => \Twig_LoaderInterface::class,
+      'twig.loader.filesystem' => \Twig_ExistsLoaderInterface::class,
+      'twig.loader.string' => \Twig_ExistsLoaderInterface::class,
+      'twig.loader.theme_registry' => \Twig_ExistsLoaderInterface::class,
+      'typed_data_manager' => \Drupal\Core\TypedData\TypedDataManagerInterface::class,
+      'unrouted_url_assembler' => \Drupal\Core\Utility\UnroutedUrlAssemblerInterface::class,
+      'update.post_update_registry' => \Drupal\Core\Update\UpdateRegistry::class,
+      'update.post_update_registry_factory' => \Drupal\Core\Update\UpdateRegistryFactory::class,
+      'url_generator' => \Drupal\Core\Routing\UrlGeneratorInterface::class,
+      'url_generator.non_bubbling' => \Drupal\Core\Routing\UrlGeneratorInterface::class,
+      'user_permissions_hash_generator' => \Drupal\Core\Session\PermissionsHashGeneratorInterface::class,
+      'uuid' => \Drupal\Component\Uuid\UuidInterface::class,
+      'validation.constraint' => \Drupal\Core\Cache\CacheableDependencyInterface::class,
     ])
   );
 
