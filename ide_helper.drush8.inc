@@ -94,6 +94,7 @@ function drush_ide_helper_phpstorm_meta() {
   $yaml = \Drupal::service('serialization.yaml');
   $services = $yaml->decode(file_get_contents(DRUPAL_ROOT . '/core/core.services.yml'));
   $extensions['Core']['services'] = $services['services'];
+  $allServices = $services['services'];
   foreach (\Drupal::moduleHandler()->getModuleList() as $extension) {
     $path = $extension->getPath();
     $extensionName = $extension->getName();
@@ -104,6 +105,7 @@ function drush_ide_helper_phpstorm_meta() {
 
     $services = $yaml->decode(file_get_contents($fileName));
     if (!empty($services['services'])) {
+      $allServices += $services;
       $extensions[$extensionName]['services'] = $services['services'];
     }
   }
@@ -156,7 +158,7 @@ function drush_ide_helper_phpstorm_meta() {
 
     if (isset($items['services'])) {
       foreach ($items['services'] as $serviceName => $service) {
-        $serviceClass = ide_helper_service_class($service);
+        $serviceClass = ide_helper_service_class($service, $allServices);
         if ($serviceClass) {
           $serviceClassName = ide_helper_class_name_from_fqn($serviceClass);
           $meta->addOverride(
@@ -199,12 +201,15 @@ function ide_helper_get_interface(string $fqn, string $base): string {
   return $firstGroup ? reset($firstGroup) : '';
 }
 
-function ide_helper_service_class(array $service): string {
+function ide_helper_service_class(array $service, array $allServices): string {
   if (!empty($service['class'])) {
     return $service['class'];
   }
 
-  // @todo Get parent.
+  if (!empty($service['parent']) && isset($allServices[$service['parent']])) {
+    return ide_helper_service_class($allServices[$service['parent']], $allServices);
+  }
+
   return '';
 }
 
@@ -305,6 +310,7 @@ namespace PHPSTORM_META {
   {{ overrides }}
 
 }
+
 PHP;
 
   protected $tplOverride = <<<'PHP'

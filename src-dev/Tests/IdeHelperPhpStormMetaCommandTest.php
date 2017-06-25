@@ -30,6 +30,11 @@ class IdeHelperPhpStormMetaCommandTest extends CommandUnishTestCase {
     parent::setUp();
 
     $this->setUpDrupal(1, TRUE);
+    $this->drush(
+      'pm-enable',
+      ['aggregator'],
+      $this->options() + ['yes' => NULL]
+    );
   }
 
   /**
@@ -82,6 +87,7 @@ class IdeHelperPhpStormMetaCommandTest extends CommandUnishTestCase {
     );
 
     $fileNames = [
+      'drupal.aggregator.php',
       'drupal.core.php',
       'drupal.dynamic_page_cache.php',
       'drupal.file.php',
