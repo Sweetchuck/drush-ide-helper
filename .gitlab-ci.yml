@@ -1,4 +1,4 @@
-image: 'php:7.1.6-cli'
+image: 'leoontheearth/docker-gitlab-ci-runner-php:7.1'
 
 stages:
   - 'Build'
@@ -12,6 +12,10 @@ variables:
   UNISH_DRUSH: '$CI_PROJECT_DIR/bin/drush'
   UNISH_DB_URL: 'sqlite://tmp/unish'
 
+cache:
+  paths:
+    - 'cache/'
+
 .workbench:
   tags: &tags
     - 'dockerized'
@@ -20,22 +24,18 @@ build:
   stage: 'Build'
   tags: *tags
   script:
-    - >-
-      curl https://getcomposer.org/download/1.4.2/composer.phar --output cache/bin/composer
-      &&
-      chmod +x cache/bin/composer
-    - './cache/bin/composer install'
+    - 'composer install'
 
 lint:
   stage: 'QA'
   tags: *tags
   script:
-    - './cache/bin/composer install'
-    - './bin/phpcs'
+    - 'composer install'
+    - 'bin/phpcs'
 
 phpunit:
   stage: 'QA'
   tags: *tags
   script:
-    - './cache/bin/composer install'
-    - './bin/phpunit'
+    - 'composer install'
+    - 'bin/phpunit --colors=never --coverage-text'

@@ -10,6 +10,21 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class PhpStormMeta {
 
+  /**
+   * @var array
+   */
+  protected $extensions = [];
+
+  /**
+   * @var array
+   */
+  protected $allServices = [];
+
+  /**
+   * @var \Drupal\ide_helper\PhpStormMetaFileRenderer
+   */
+  protected $metaFileRenderer;
+
   // region Option - outputDir.
   /**
    * @var string
@@ -30,21 +45,45 @@ class PhpStormMeta {
   }
   // endregion
 
-  public function execute() {
-    $extensions = [];
+  public function __construct() {
+    $this->metaFileRenderer = new PhpStormMetaFileRenderer();
+  }
 
+  public function execute() {
+    $this
+      ->initExtensions()
+      ->processExtensions();
+  }
+
+  protected function initExtensions() {
+    return $this
+      ->initExtensionsEntityTypes()
+      ->initExtensionsServices();
+  }
+
+  /**
+   * @return $this
+   */
+  protected function initExtensionsEntityTypes() {
     $entityTypeDefinitions = \Drupal::entityTypeManager()->getDefinitions();
     foreach ($entityTypeDefinitions as $entityTypeDefinition) {
       $originalClass = $entityTypeDefinition->getOriginalClass();
       $extensionName = Utils::extensionNameFromFqn($originalClass);
-      $extensions[$extensionName]['entityTypes'][$entityTypeDefinition->id()] = $entityTypeDefinition;
+      $this->extensions[$extensionName]['entityTypes'][$entityTypeDefinition->id()] = $entityTypeDefinition;
     }
 
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
+  protected function initExtensionsServices() {
     /** @var \Drupal\Component\Serialization\SerializationInterface $yaml */
     $yaml = \Drupal::service('serialization.yaml');
     $services = $yaml->decode(file_get_contents(DRUPAL_ROOT . '/core/core.services.yml'));
-    $extensions['Core']['services'] = $services['services'];
-    $allServices = $services['services'];
+    $this->extensions['Core']['services'] = $services['services'];
+    $this->allServices = $services['services'];
     foreach (\Drupal::moduleHandler()->getModuleList() as $extension) {
       $path = $extension->getPath();
       $extensionName = $extension->getName();
@@ -55,9 +94,39 @@ class PhpStormMeta {
 
       $services = $yaml->decode(file_get_contents($fileName));
       if (!empty($services['services'])) {
-        $allServices += $services;
-        $extensions[$extensionName]['services'] = $services['services'];
+        $this->allServices += $services['services'];
+        $this->extensions[$extensionName]['services'] = $services['services'];
       }
+    }
+
+    return $this;
+  }
+
+  protected function processExtensions() {
+    foreach (array_keys($this->extensions) as $extensionName) {
+      $this
+        ->processExtension($extensionName)
+        ->dump($extensionName);
+    }
+
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
+  protected function processExtension(string $extensionName) {
+    return $this
+      ->processExtensionEntityTypes($extensionName)
+      ->processExtensionServices($extensionName);
+  }
+
+  /**
+   * @return $this
+   */
+  protected function processExtensionEntityTypes(string $extensionName) {
+    if (empty($this->extensions[$extensionName]['entityTypes'])) {
+      return $this;
     }
 
     $handlers = [
@@ -83,55 +152,66 @@ class PhpStormMeta {
       ],
     ];
 
-    $metaFileRenderer = new PhpStormMetaFileRenderer();
-    foreach ($extensions as $extensionName => $items) {
-      if (isset($items['entityTypes'])) {
-        /** @var \Drupal\Core\Entity\EntityTypeInterface $entityTypeDefinition */
-        foreach ($items['entityTypes'] as $entityTypeDefinition) {
-          foreach ($handlers as $handler) {
-            if (!$entityTypeDefinition->hasHandlerClass($handler['name'])) {
-              continue;
-            }
-
-            $handlerClass = $entityTypeDefinition->getHandlerClass($handler['name']);
-            $handlerInterface = $this->getServiceHandlerInterface($handlerClass, $handler['base']);
-            $metaFileRenderer->addOverride(
-              EntityTypeManagerInterface::class,
-              $handler['method'],
-              [
-                $entityTypeDefinition->id() => $handlerInterface ?: $handlerClass,
-              ]
-            );
-          }
+    /** @var \Drupal\Core\Entity\EntityTypeInterface $entityTypeDefinition */
+    foreach ($this->extensions[$extensionName]['entityTypes'] as $entityTypeDefinition) {
+      foreach ($handlers as $handler) {
+        if (!$entityTypeDefinition->hasHandlerClass($handler['name'])) {
+          continue;
         }
-      }
 
-      if (isset($items['services'])) {
-        foreach ($items['services'] as $serviceName => $service) {
-          $serviceClass = Utils::serviceClass($service, $allServices);
-          if ($serviceClass) {
-            $serviceClassName = Utils::classNameFromFqn($serviceClass);
-            $metaFileRenderer->addOverride(
-              ContainerInterface::class,
-              'get',
-              [
-                $serviceName => $this->getServiceHandlerInterface($serviceClass, $serviceClassName) ?: $serviceClass,
-              ]
-            );
-          }
-        }
-      }
-
-      if (!$metaFileRenderer->isEmpty()) {
-        $outputDir = $this->getOutputDir();
-        $dir = "$outputDir/.phpstorm.meta.php";
-        file_prepare_directory($dir, FILE_CREATE_DIRECTORY);
-        $extensionNameLower = Unicode::strtolower($extensionName);
-        file_put_contents("$dir/drupal.$extensionNameLower.php", $metaFileRenderer->render());
+        $handlerClass = $entityTypeDefinition->getHandlerClass($handler['name']);
+        $handlerInterface = $this->getServiceHandlerInterface($handlerClass, $handler['base']);
+        $this->metaFileRenderer->addOverride(
+          EntityTypeManagerInterface::class,
+          $handler['method'],
+          [
+            $entityTypeDefinition->id() => $handlerInterface ?: $handlerClass,
+          ]
+        );
       }
     }
 
-    return null;
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
+  protected function processExtensionServices(string $extensionName) {
+    if (empty($this->extensions[$extensionName]['services'])) {
+      return $this;
+    }
+
+    foreach ($this->extensions[$extensionName]['services'] as $serviceName => $service) {
+      $serviceClass = Utils::serviceClass($service, $this->allServices);
+      if ($serviceClass) {
+        $serviceClassName = Utils::classNameFromFqn($serviceClass);
+        $this->metaFileRenderer->addOverride(
+          ContainerInterface::class,
+          'get',
+          [
+            $serviceName => $this->getServiceHandlerInterface($serviceClass, $serviceClassName) ?: $serviceClass,
+          ]
+        );
+      }
+    }
+
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
+  protected function dump(string $extensionName) {
+    if (!$this->metaFileRenderer->isEmpty()) {
+      $outputDir = $this->getOutputDir();
+      $dir = "$outputDir/.phpstorm.meta.php";
+      file_prepare_directory($dir, FILE_CREATE_DIRECTORY);
+      $extensionNameLower = Unicode::strtolower($extensionName);
+      file_put_contents("$dir/drupal.$extensionNameLower.php", $this->metaFileRenderer->render());
+    }
+
+    return $this;
   }
 
   protected function getServiceHandlerInterface(string $fqn, string $base): string {

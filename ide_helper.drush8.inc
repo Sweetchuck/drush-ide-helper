@@ -12,7 +12,6 @@ use Drupal\ide_helper\Utils;
  * Implements hook_drush_command().
  */
 function ide_helper_drush_command() {
-
   $commands = [];
 
   $commands['ide-helper-phpstorm-meta'] = [
@@ -91,13 +90,10 @@ function drush_ide_helper_phpstorm_meta_validate() {
  * Implements drush_COMMAND().
  */
 function drush_ide_helper_phpstorm_meta() {
-  $outputDir = drush_get_option('output-dir');
-  if (!$outputDir) {
-    $outputDir = drush_get_option('output-dir', NULL, 'ide_helper:default_values');
-  }
+  $outputDir = drush_get_option('output-dir') ?: drush_get_option('output-dir', NULL, 'ide_helper:default_values');
 
   $handler = new PhpStormMeta();
-  $handler->setOutputDir($outputDir);
-
-  return $handler->execute();
+  $handler
+    ->setOutputDir($outputDir)
+    ->execute();
 }
