@@ -1,14 +1,12 @@
 <?php
 
-namespace Drupal\ide_helper\Tests;
+namespace Drupal\ide_helper\Tests\Unish;
 
 use Unish\CommandUnishTestCase;
 use Webmozart\PathUtil\Path;
 
 /**
- * Class IdeHelperPhpStormMetaCommandTest.
- *
- * @package Drupal\ide_helper\Tests
+ * @group IdeHelperUnish
  */
 class IdeHelperPhpStormMetaCommandTest extends CommandUnishTestCase {
 
@@ -20,7 +18,7 @@ class IdeHelperPhpStormMetaCommandTest extends CommandUnishTestCase {
   public function __construct($name = NULL, array $data = [], $dataName = '') {
     parent::__construct($name, $data, $dataName);
 
-    $this->ideHelperDir = Path::canonicalize(Path::join(__DIR__, '..', '..'));
+    $this->ideHelperDir = Path::canonicalize(Path::join(__DIR__, '..', '..', '..'));
   }
 
   /**

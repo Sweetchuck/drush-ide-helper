@@ -25,7 +25,6 @@ class PhpStormMeta {
    */
   protected $metaFileRenderer;
 
-  // region Option - outputDir.
   /**
    * @var string
    */
@@ -43,7 +42,6 @@ class PhpStormMeta {
 
     return $this;
   }
-  // endregion
 
   public function __construct() {
     $this->metaFileRenderer = new PhpStormMetaFileRenderer();

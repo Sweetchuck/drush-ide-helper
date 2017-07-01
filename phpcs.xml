@@ -1,15 +1,20 @@
 <?xml version="1.0"?>
 <ruleset name="DrupalSoft">
+  <file>src/</file>
   <file>src-dev/Composer/</file>
   <file>src-dev/Tests/</file>
-  <file>ide_helper.drush8.inc</file>
+  <file>ide_helper.drush.inc</file>
+  <file>RoboFile.php</file>
 
   <arg
     name="extensions"
     value="inc/PHP,install/PHP,module/PHP,php/PHP,profile/PHP,test/PHP,theme/PHP"/>
 
   <rule ref="vendor/drupal/coder/coder_sniffer/Drupal">
+    <exclude name="Drupal.Commenting.ClassComment.Missing"/>
     <exclude name="Drupal.Commenting.FunctionComment.Missing"/>
+    <exclude name="Drupal.Commenting.DocComment.MissingShort"/>
+    <exclude name="Drupal.Commenting.FunctionComment.MissingReturnComment"/>
   </rule>
 
   <rule ref="vendor/drupal/coder/coder_sniffer/DrupalPractice" />

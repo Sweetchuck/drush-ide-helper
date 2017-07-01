@@ -16,16 +16,15 @@ class Utils {
     return end($parts);
   }
 
-
   public static function splitCamelCase(string $camelCase): array {
     return preg_split('/(?<=[a-z])(?=[A-Z])/', $camelCase);
   }
 
-  public static function numOfWordMatches(string $className, string $interfaceName): int {
-    $classNameWords = static::splitCamelCase($className);
-    $interfaceNameWords = static::splitCamelCase($interfaceName);
+  public static function numOfWordMatches(string $camelCaseA, string $camelCaseB): int {
+    $aWords = static::splitCamelCase($camelCaseA);
+    $bWord = static::splitCamelCase($camelCaseB);
 
-    return count(array_intersect($classNameWords, $interfaceNameWords));
+    return count(array_intersect($aWords, $bWord));
   }
 
   public static function serviceClass(array $service, array $allServices): string {
