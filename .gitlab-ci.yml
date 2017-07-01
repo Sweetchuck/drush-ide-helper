@@ -4,36 +4,38 @@ stages:
   - 'Build'
   - 'QA'
 
+variables:
+  COMPOSER_NO_INTERACTION: '1'
+  COMPOSER_DISABLE_XDEBUG_WARN: '1'
+  COMPOSER_ALLOW_SUPERUSER: '1'
+  COMPOSER_CACHE_DIR: '${CI_PROJECT_DIR}/cache/composer'
+  UNISH_DRUSH: '$CI_PROJECT_DIR/bin/drush'
+  UNISH_DB_URL: 'sqlite://tmp/unish'
+
+.workbench:
+  tags: &tags
+    - 'dockerized'
+
 build:
   stage: 'Build'
-  tags:
-    - 'pumpa'
+  tags: *tags
   script:
     - >-
-      php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+      curl https://getcomposer.org/download/1.4.2/composer.phar --output cache/bin/composer
       &&
-      php -r "if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-      &&
-      php composer-setup.php --install-dir='.' --filename=composer
-      &&
-      php -r "unlink('composer-setup.php');"
-      &&
-      chmod +x composer
-    - 'composer install'
+      chmod +x cache/bin/composer
+    - './cache/bin/composer install'
 
 lint:
   stage: 'QA'
-  tags:
-    - 'pumpa'
+  tags: *tags
   script:
-    - 'bin/phpcs'
+    - './cache/bin/composer install'
+    - './bin/phpcs'
 
 phpunit:
   stage: 'QA'
-  tags:
-    - 'pumpa'
-  variables:
-    UNISH_DRUSH: '$CI_PROJECT_DIR/bin/drush'
-    UNISH_DB_URL: 'sqlite://tmp/unish'
+  tags: *tags
   script:
-    - 'bin/phpunit'
+    - './cache/bin/composer install'
+    - './bin/phpunit'
