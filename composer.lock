@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "54538646b5ba27697ae542f6c373508e",
+    "content-hash": "b3ad1f12036be52373f06a3e996136e4",
     "packages": [
         {
             "name": "consolidation/annotated-command",
@@ -3005,7 +3005,8 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.1"
+        "php": ">=7.1",
+        "ext-mbstring": "*"
     },
     "platform-dev": []
 }

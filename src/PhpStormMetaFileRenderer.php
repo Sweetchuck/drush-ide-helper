@@ -2,8 +2,6 @@
 
 namespace Drupal\ide_helper;
 
-use Drupal\Component\Utility\Unicode;
-
 class PhpStormMetaFileRenderer {
 
   protected $overrides = [];
@@ -37,6 +35,9 @@ PHP;
     return !$this->overrides;
   }
 
+  /**
+   * @return $this
+   */
   public function addOverride(string $class, string $method, array $map) {
     $key = "$class::$method";
     if (!isset($this->overrides[$key])) {
@@ -48,6 +49,8 @@ PHP;
     }
 
     $this->overrides[$key]['map'] += $map;
+
+    return $this;
   }
 
   public function render(): string {
@@ -79,22 +82,18 @@ PHP;
     $pairs = [];
     ksort($override['map']);
     foreach ($override['map'] as $name => $fqn) {
-      $fqn = $this->prefixWithBackslash($fqn);
+      $fqn = Utils::prefixFqnWithBackslash($fqn);
       $pairs[] = "'$name' => $fqn::class";
     }
 
     return strtr(
       $this->tplOverride,
       [
-        '{{ class }}' => $this->prefixWithBackslash($override['class']),
+        '{{ class }}' => Utils::prefixFqnWithBackslash($override['class']),
         '{{ method }}' => $override['method'],
         '{{ pairs }}' => implode(",\n      ", $pairs) . ',',
       ]
     );
-  }
-
-  protected function prefixWithBackslash(string $fqn): string {
-    return (Unicode::substr($fqn, 0, 1) !== '\\') ? "\\$fqn" : $fqn;
   }
 
 }

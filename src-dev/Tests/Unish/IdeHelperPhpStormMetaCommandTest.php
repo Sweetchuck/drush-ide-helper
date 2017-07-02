@@ -98,7 +98,7 @@ class IdeHelperPhpStormMetaCommandTest extends CommandUnishTestCase {
       $filePath = Path::join($this->webroot(), '.phpstorm.meta.php', $fileName);
       $this->assertFileExists($filePath);
       $this->assertStringEqualsFile(
-        "{$this->ideHelperDir}/src-dev/expected/$fileName",
+        "{$this->ideHelperDir}/src-dev/expected/Unish/PhpStormMeta/$fileName",
         file_get_contents($filePath),
         "File '$fileName'"
       );
