@@ -1,8 +1,7 @@
 <?xml version="1.0"?>
 <ruleset name="DrupalSoft">
   <file>src/</file>
-  <file>src-dev/Composer/</file>
-  <file>src-dev/Tests/</file>
+  <file>src-dev/</file>
   <file>ide_helper.drush.inc</file>
   <file>RoboFile.php</file>
 
@@ -18,4 +17,8 @@
   </rule>
 
   <rule ref="vendor/drupal/coder/coder_sniffer/DrupalPractice" />
+
+  <rule ref="Drupal.Classes.FullyQualifiedNamespace.UseStatementMissing">
+    <exclude-pattern>src-dev/expected/*</exclude-pattern>
+  </rule>
 </ruleset>

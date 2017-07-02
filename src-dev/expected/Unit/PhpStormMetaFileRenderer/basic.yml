@@ -1,0 +1,18 @@
+-
+  - '\Ab\Cd'
+  - 'e'
+  -
+    f: '\Ab\Cd\FInterface'
+
+-
+  - '\Gh\Ij'
+  - 'k'
+  -
+    l: '\Gh\Ij\LInterface'
+    m: '\Gh\Ij\MInterface'
+
+-
+  - '\Gh\Ij'
+  - 'k'
+  -
+    n: '\Gh\Ij\NInterface'

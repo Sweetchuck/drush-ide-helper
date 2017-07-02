@@ -12,28 +12,24 @@ use Drupal\ide_helper\Utils;
  * Implements hook_drush_command().
  */
 function ide_helper_drush_command() {
-  $commands = [];
-
-  $commands['ide-helper-phpstorm-meta'] = [
-    'aliases' => ['ihpm'],
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
-    'description' => dt('Some helpful description.'),
-    'required-arguments' => TRUE,
-    'arguments' => [],
-    'options' => [
-      'output-dir' => [
-        'description' => dt('Output directory name, without ".phpstorm.meta.php"'),
-        'example-value' => '/foo/bar',
+  return [
+    'ide-helper-phpstorm-meta' => [
+      'aliases' => ['ihpm'],
+      'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
+      'description' => dt('Generates PhpStorm Metadata files. https://confluence.jetbrains.com/display/PhpStorm/PhpStorm+Advanced+Metadata'),
+      'options' => [
+        'output-dir' => [
+          'description' => dt('PhpStorm project root directory name. The ".phpstorm.meta.php" will be automatically added.'),
+          'example-value' => '/foo/bar',
+        ],
       ],
+      'allow-additional-options' => FALSE,
+      'examples' => [
+        'drush ide-helper-phpstorm-meta' => dt('Basic usage with automatic detection of the ".idea" directory'),
+      ],
+      'core' => ['8|8+'],
     ],
-    'allow-additional-options' => FALSE,
-    'examples' => [
-      'drush ide-helper-foo' => dt('Description of what this command will do.'),
-    ],
-    'core' => ['8|8+'],
   ];
-
-  return $commands;
 }
 
 /**

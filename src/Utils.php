@@ -39,6 +39,10 @@ class Utils {
     return '';
   }
 
+  public static function prefixFqnWithBackslash(string $fqn): string {
+    return (mb_substr($fqn, 0, 1) !== '\\') ? "\\$fqn" : $fqn;
+  }
+
   public static function autodetectIdeaProjectRoot(string $cwd): string {
     $parts = explode('/', $cwd);
 

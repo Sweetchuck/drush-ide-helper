@@ -101,4 +101,24 @@ class UtilsTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals($expected, Utils::serviceClass($service, $allService));
   }
 
+  public function casesPrefixFqnWithBackslash(): array {
+    return [
+      'basic' => [
+        '\Foo\Bar',
+        'Foo\Bar',
+      ],
+      'already prefixed' => [
+        '\Foo\Bar',
+        '\Foo\Bar',
+      ],
+    ];
+  }
+
+  /**
+   * @dataProvider casesPrefixFqnWithBackslash
+   */
+  public function testPrefixFqnWithBackslash(string $expected, string $fqn): void {
+    $this->assertEquals($expected, Utils::prefixFqnWithBackslash($fqn));
+  }
+
 }

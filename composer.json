@@ -11,6 +11,7 @@
     "prefer-stable": true,
     "require": {
         "php": ">=7.1",
+        "ext-mbstring": "*",
         "drush/drush": "^8.1"
     },
     "require-dev": {
@@ -20,6 +21,7 @@
         "consolidation/robo": "^1.1",
         "drupal/coder": "^8.2",
         "phpunit/phpunit": "5.*",
+        "symfony/finder": "^2.8",
         "symfony/process": "^3.3",
         "webmozart/path-util": "^2.3"
     },

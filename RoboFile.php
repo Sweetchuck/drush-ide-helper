@@ -177,8 +177,7 @@ class RoboFile extends Tasks {
 
     $files = [
       'src/',
-      'src-dev/Composer/',
-      'src-dev/Tests/',
+      'src-dev/',
       'ide_helper.drush.inc',
       'RoboFile.php',
     ];
@@ -197,7 +196,7 @@ class RoboFile extends Tasks {
     }
 
     if ($this->context !== 'git-hook') {
-      return $this->taskPhpcsLintFiles($options + ['files' => $files]);
+      return $this->taskPhpcsLintFiles($options);
     }
 
     $assetJar = new AssetJar();
