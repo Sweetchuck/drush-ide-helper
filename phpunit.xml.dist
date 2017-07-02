@@ -35,15 +35,19 @@
   </php>
 
   <testsuites>
-    <testsuite name="Drush Test Suite">
-      <directory>src-dev/Tests</directory>
+    <testsuite name="Unish">
+      <directory>src-dev/Tests/Unish</directory>
+    </testsuite>
+
+    <testsuite name="Unit">
+      <directory>src-dev/Tests/Unit</directory>
     </testsuite>
   </testsuites>
 
   <filter>
     <whitelist processUncoveredFilesFromWhitelist="true">
       <directory>src/</directory>
-      <file>ide_helper.drush8.inc</file>
+      <file>ide_helper.drush.inc</file>
     </whitelist>
   </filter>
 

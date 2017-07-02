@@ -15,6 +15,9 @@
     },
     "require-dev": {
         "cheppers/git-hooks": "^0.0",
+        "cheppers/robo-git": "^0.0.5",
+        "cheppers/robo-phpcs": "^0.0.13",
+        "consolidation/robo": "^1.1",
         "drupal/coder": "^8.2",
         "phpunit/phpunit": "5.*",
         "symfony/process": "^3.3",
