@@ -3,6 +3,7 @@
 namespace Drupal\ide_helper\Tests\Unit;
 
 use Drupal\ide_helper\Utils;
+use org\bovigo\vfs\vfsStream;
 
 /**
  * @covers \Drupal\ide_helper\Utils
@@ -119,6 +120,60 @@ class UtilsTest extends \PHPUnit_Framework_TestCase {
    */
   public function testPrefixFqnWithBackslash(string $expected, string $fqn): void {
     $this->assertEquals($expected, Utils::prefixFqnWithBackslash($fqn));
+  }
+
+  public function casesAutodetectIdeaProjectRoot(): array {
+    $rootDir = vfsStream::setup(__FUNCTION__);
+    $rootDirUrl = vfsStream::url($rootDir->getName());
+
+    vfsStream::create(
+      [
+        'project-01' => [
+          'a' => [
+            'b' => [
+              'c' => [],
+            ],
+          ],
+          '.idea' => [],
+        ],
+        'foo' => [
+          'bar' => [
+            'project-02' => [
+              'd' => [
+                'e' => [
+                  'f' => [],
+                ],
+              ],
+              '.idea' => [],
+            ],
+            'not-a-project' => [],
+          ],
+        ],
+      ],
+      $rootDir
+    );
+
+    return [
+      'cwd is the project root' => [
+        "$rootDirUrl/project-01",
+        "$rootDirUrl/project-01",
+      ],
+      'cwd is under the project root' => [
+        "$rootDirUrl/foo/bar/project-02",
+        "$rootDirUrl/foo/bar/project-02/d/e/f",
+      ],
+      'there is no .idea in the parent directories' => [
+        '',
+        "$rootDirUrl/foo/bar/not-a-project",
+      ],
+    ];
+  }
+
+  /**
+   * @dataProvider casesAutodetectIdeaProjectRoot
+   */
+  public function testAutodetectIdeaProjectRoot(string $expected, string $cwd): void {
+    $this->assertEquals($expected, Utils::autodetectIdeaProjectRoot($cwd));
   }
 
 }

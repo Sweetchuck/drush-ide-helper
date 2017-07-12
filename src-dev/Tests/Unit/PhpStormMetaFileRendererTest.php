@@ -22,7 +22,7 @@ class PhpStormMetaFileRendererTest extends \PHPUnit_Framework_TestCase {
   public function __construct($name = NULL, array $data = [], $dataName = '') {
     parent::__construct($name, $data, $dataName);
 
-    $this->ideHelperDir = Path::canonicalize(Path::join(__DIR__, '..', '..', '..'));
+    $this->ideHelperDir = Path::join(__DIR__, '..', '..', '..');
   }
 
   public function testIsEmpty(): void {

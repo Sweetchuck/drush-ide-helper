@@ -1,0 +1,29 @@
+
+language: 'php'
+php:
+  - '7.1'
+
+services:
+  - 'mysql'
+
+cache:
+  directories:
+    - '$HOME/.composer/cache'
+
+before_install:
+  - 'export COMPOSER_NO_INTERACTION=1'
+  - 'export COMPOSER_DISABLE_XDEBUG_WARN=1'
+  - 'export COMPOSER_ALLOW_SUPERUSER=1'
+  - 'export UNISH_DRUSH="$(pwd)/bin/drush"'
+  - "export UNISH_DB_URL='mysql://root@127.0.0.1'"
+
+install:
+  - 'composer install'
+  - 'bin/phpcs'
+  - 'bin/phpunit --coverage-text'
+
+after_success:
+  - 'bash <(curl -s https://codecov.io/bash)'
+
+notifications:
+  email: false
