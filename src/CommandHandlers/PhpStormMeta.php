@@ -191,6 +191,14 @@ class PhpStormMeta {
             $serviceName => $this->getServiceHandlerInterface($serviceClass, $serviceClassName) ?: $serviceClass,
           ]
         );
+
+        $this->metaFileRenderer->addOverride(
+          \Drupal::class,
+          'service',
+          [
+            $serviceName => $this->getServiceHandlerInterface($serviceClass, $serviceClassName) ?: $serviceClass,
+          ]
+        );
       }
     }
 

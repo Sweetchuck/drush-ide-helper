@@ -35,12 +35,12 @@
   </php>
 
   <testsuites>
-    <testsuite name="Unish">
-      <directory>src-dev/Tests/Unish</directory>
-    </testsuite>
-
     <testsuite name="Unit">
       <directory>src-dev/Tests/Unit</directory>
+    </testsuite>
+
+    <testsuite name="Unish">
+      <directory>src-dev/Tests/Unish</directory>
     </testsuite>
   </testsuites>
 
