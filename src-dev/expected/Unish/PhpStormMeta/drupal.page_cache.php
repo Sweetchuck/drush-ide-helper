@@ -14,4 +14,11 @@ namespace PHPSTORM_META {
     ])
   );
 
+  override(
+    \Drupal::service(0),
+    map([
+      'http_middleware.page_cache' => \Symfony\Component\HttpKernel\HttpKernelInterface::class,
+    ])
+  );
+
 }

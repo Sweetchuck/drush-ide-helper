@@ -42,4 +42,15 @@ namespace PHPSTORM_META {
     ])
   );
 
+  override(
+    \Drupal::service(0),
+    map([
+      'aggregator.items.importer' => \Drupal\aggregator\ItemsImporterInterface::class,
+      'logger.channel.aggregator' => \Drupal\Core\Logger\LoggerChannelInterface::class,
+      'plugin.manager.aggregator.fetcher' => \Drupal\Component\Plugin\PluginManagerInterface::class,
+      'plugin.manager.aggregator.parser' => \Drupal\Component\Plugin\PluginManagerInterface::class,
+      'plugin.manager.aggregator.processor' => \Drupal\Component\Plugin\PluginManagerInterface::class,
+    ])
+  );
+
 }

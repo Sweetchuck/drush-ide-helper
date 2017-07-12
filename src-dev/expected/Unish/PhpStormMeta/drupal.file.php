@@ -35,4 +35,11 @@ namespace PHPSTORM_META {
     ])
   );
 
+  override(
+    \Drupal::service(0),
+    map([
+      'file.usage' => \Drupal\file\FileUsage\FileUsageInterface::class,
+    ])
+  );
+
 }
