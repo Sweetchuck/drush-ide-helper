@@ -3,6 +3,11 @@
     "description": "IDE helper",
     "license": "GPL-3.0",
     "type": "drupal-drush",
+    "keywords": [
+        "drupal",
+        "drush",
+        "phpstorm"
+    ],
     "config": {
         "bin-dir": "bin",
         "sort-packages": true
