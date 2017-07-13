@@ -125,6 +125,7 @@ class IdeHelperPhpStormMetaCommandTest extends CommandUnishTestCase {
       'uri' => key($this->getSites()),
       'yes' => NULL,
       'include' => $this->ideHelperDir,
+      'php' => PHP_BINARY,
     ];
   }
 

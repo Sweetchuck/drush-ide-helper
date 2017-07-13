@@ -2,6 +2,8 @@
 
 namespace Drupal\ide_helper;
 
+use Webmozart\PathUtil\Path;
+
 class Utils {
 
   public static function extensionNameFromFqn(string $fqn): string {
@@ -22,9 +24,9 @@ class Utils {
 
   public static function numOfWordMatches(string $camelCaseA, string $camelCaseB): int {
     $aWords = static::splitCamelCase($camelCaseA);
-    $bWord = static::splitCamelCase($camelCaseB);
+    $bWords = static::splitCamelCase($camelCaseB);
 
-    return count(array_intersect($aWords, $bWord));
+    return count(array_intersect($aWords, $bWords));
   }
 
   public static function serviceClass(array $service, array $allServices): string {
@@ -44,15 +46,17 @@ class Utils {
   }
 
   public static function autodetectIdeaProjectRoot(string $cwd): string {
-    $parts = explode('/', $cwd);
-
-    while ($parts) {
-      $dir = implode('/', $parts);
-      if (is_dir("$dir/.idea")) {
-        return $dir;
+    while (is_dir($cwd)) {
+      if (is_dir("$cwd/.idea")) {
+        return $cwd;
       }
 
-      array_pop($parts);
+      $parent = Path::join($cwd, '..');
+      if ($parent === $cwd) {
+        return '';
+      }
+
+      $cwd = $parent;
     }
 
     return '';

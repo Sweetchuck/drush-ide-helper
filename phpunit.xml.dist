@@ -54,24 +54,24 @@
   <logging>
     <log
       type="coverage-text"
-      target="/dev/stdout"/>
+      target="php://stdout"/>
 
     <log
       type="coverage-html"
-      target="reports/human/coverage/unish"/>
+      target="reports/human/coverage/html"/>
 
     <log
       type="coverage-clover"
-      target="reports/machine/coverage/unish.coverage.xml"/>
+      target="reports/machine/coverage/coverage.xml"/>
 
     <log
       type="testdox-html"
-      target="reports/human/unit/unish.junit.html"
+      target="reports/human/unit/junit.html"
       logIncompleteSkipped="true"/>
 
     <log
       type="junit"
-      target="reports/machine/unit/unish.junit.xml"
+      target="reports/machine/unit/junit.xml"
       logIncompleteSkipped="true"/>
   </logging>
 </phpunit>

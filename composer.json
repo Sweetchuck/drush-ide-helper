@@ -10,7 +10,8 @@
     ],
     "config": {
         "bin-dir": "bin",
-        "sort-packages": true
+        "sort-packages": true,
+        "optimize-autoloader": true
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -25,6 +26,7 @@
         "cheppers/robo-phpcs": "^0.0.13",
         "consolidation/robo": "^1.1",
         "drupal/coder": "^8.2",
+        "mikey179/vfsStream": "^1.6",
         "phpunit/phpunit": "5.*",
         "symfony/finder": "^2.8",
         "symfony/process": "^3.3",

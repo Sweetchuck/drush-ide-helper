@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ruleset name="DrupalSoft">
+<ruleset name="DrupalCustom">
   <file>src/</file>
   <file>src-dev/</file>
   <file>ide_helper.drush.inc</file>
