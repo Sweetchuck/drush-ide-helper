@@ -19,8 +19,9 @@ before_install:
 
 install:
   - 'composer install'
+  - 'composer validate'
   - 'bin/phpcs'
-  - 'bin/phpunit --coverage-text'
+  - 'bin/phpunit'
 
 after_success:
   - 'bash <(curl -s https://codecov.io/bash)'
