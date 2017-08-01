@@ -2,15 +2,10 @@
 
 namespace Drupal\ide_helper\Composer;
 
-use Cheppers\GitHooks\Main as GitHooksMain;
 use Composer\Script\Event;
 use Symfony\Component\Process\Process;
+use Sweetchuck\GitHooks\Composer\Scripts as GitHooks;
 
-/**
- * Class Scripts.
- *
- * @package Drupal\phpstorm\Composer
- */
 class Scripts {
 
   /**
@@ -32,7 +27,7 @@ class Scripts {
    */
   public static function postInstallCmd(Event $event) {
     static::init($event);
-    GitHooksMain::deploy($event);
+    GitHooks::deploy($event);
     static::phpcsConfigSet();
 
     return 0;
@@ -42,14 +37,11 @@ class Scripts {
    * Composer event callback.
    */
   public static function postUpdateCmd(Event $event) {
-    GitHooksMain::deploy($event);
+    GitHooks::deploy($event);
 
     return 0;
   }
 
-  /**
-   * Initialize.
-   */
   protected static function init(Event $event) {
     static::$event = $event;
     static::$processCallbackWrapper = function (string $type, string $buffer) {

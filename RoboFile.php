@@ -1,17 +1,16 @@
 <?php
 
-use Cheppers\AssetJar\AssetJar;
-use Cheppers\LintReport\Reporter\BaseReporter;
-use Cheppers\LintReport\Reporter\CheckstyleReporter;
-use Cheppers\LintReport\Reporter\VerboseReporter;
-use Cheppers\Robo\Git\GitTaskLoader;
-use Cheppers\Robo\Phpcs\PhpcsTaskLoader;
 use League\Container\ContainerInterface;
 use Robo\Collection\CollectionBuilder;
 use Robo\Tasks;
 use Robo\Task\Base\loadTasks as BaseTaskLoader;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Sweetchuck\LintReport\Reporter\BaseReporter;
+use Sweetchuck\LintReport\Reporter\CheckstyleReporter;
+use Sweetchuck\LintReport\Reporter\VerboseReporter;
+use Sweetchuck\Robo\Git\GitTaskLoader;
+use Sweetchuck\Robo\Phpcs\PhpcsTaskLoader;
 
 class RoboFile extends Tasks {
 
@@ -64,7 +63,7 @@ class RoboFile extends Tasks {
   /**
    * @var string
    */
-  protected $context = '';
+  protected $gitHook = '';
 
   protected $envNames = [
     'environment_type' => 'dev',
@@ -94,15 +93,13 @@ class RoboFile extends Tasks {
    * Git "pre-commit" hook callback.
    */
   public function githookPreCommit(): CollectionBuilder {
-    $this->context = 'git-hook';
+    $this->gitHook = 'pre-commit';
 
     return $this
       ->collectionBuilder()
-      ->addTaskList([
-        'lint.composer.lock' => $this->taskComposerValidate(),
-        'lint.phpcs' => $this->getTaskPhpcsLint(),
-        'phpunit.unit' => $this->getTaskPhpUnit(),
-      ]);
+      ->addTask($this->taskComposerValidate())
+      ->addTask($this->getTaskPhpcsLint())
+      ->addTask($this->getTaskPhpUnit());
   }
 
   /**
@@ -111,10 +108,8 @@ class RoboFile extends Tasks {
   public function lint(): CollectionBuilder {
     return $this
       ->collectionBuilder()
-      ->addTaskList([
-        'lint.composer.lock' => $this->taskComposerValidate(),
-        'lint.phpcs' => $this->getTaskPhpcsLint(),
-      ]);
+      ->addTask($this->taskComposerValidate())
+      ->addTask($this->getTaskPhpcsLint());
   }
 
   protected function errorOutput(): ?OutputInterface {
@@ -169,18 +164,11 @@ class RoboFile extends Tasks {
   }
 
   /**
-   * @return \Cheppers\Robo\Phpcs\Task\PhpcsLintFiles|\Robo\Collection\CollectionBuilder
+   * @return \sweetchuck\Robo\Phpcs\Task\PhpcsLintFiles|\Robo\Collection\CollectionBuilder
    */
   protected function getTaskPhpcsLint() {
     $envType = $this->getEnvironmentType();
     $envName = $this->getEnvironmentName();
-
-    $files = [
-      'src/',
-      'src-dev/',
-      'ide_helper.drush.inc',
-      'RoboFile.php',
-    ];
 
     $options = [
       'failOn' => 'warning',
@@ -195,44 +183,43 @@ class RoboFile extends Tasks {
         ->setDestination("reports/machine/checkstyle/phpcs.xml");
     }
 
-    if ($this->context !== 'git-hook') {
+    if ($this->gitHook !== 'pre-commit') {
       return $this->taskPhpcsLintFiles($options);
     }
 
-    $assetJar = new AssetJar();
+    $files = [
+      'src/',
+      'src-dev/',
+      'ide_helper.drush.inc',
+      'RoboFile.php',
+    ];
 
     return $this
       ->collectionBuilder()
-      ->addTaskList([
-        'git.readStagedFiles' => $this
-          ->taskGitReadStagedFiles()
-          ->setCommandOnly(TRUE)
-          ->setAssetJar($assetJar)
-          ->setAssetJarMap('files', ['files'])
-          ->setPaths($files),
-        'lint.phpcs' => $this
-          ->taskPhpcsLintInput($options)
-          ->setIgnore([
-            '*.scss',
-            '*.txt',
-            '*.yml',
-          ])
-          ->setAssetJar($assetJar)
-          ->setAssetJarMap('files', ['files']),
-      ]);
+      ->addTask($this
+        ->taskGitReadStagedFiles()
+        ->setCommandOnly(TRUE)
+        ->setPaths($files))
+      ->addTask($this
+        ->taskPhpcsLintInput($options)
+        ->setIgnore([
+          '*.scss',
+          '*.txt',
+          '*.yml',
+        ])
+        ->deferTaskConfiguration('setFiles', 'files'));
   }
 
   /**
    * @return \Robo\Task\Base\ExecStack|\Robo\Collection\CollectionBuilder
    */
   protected function getTaskPhpUnit() {
-    /** @var \Robo\Task\Base\ExecStack $task */
     $task = $this->taskExecStack();
 
     $cmdPattern = 'bin/phpunit';
     $cmdArgs = [];
 
-    if ($this->context === 'git-hook') {
+    if ($this->gitHook === 'pre-commit') {
       $cmdPattern .= ' --testsuite %s';
       $cmdArgs[] = 'Unit';
     }
