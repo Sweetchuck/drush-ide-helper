@@ -42,4 +42,18 @@ namespace PHPSTORM_META {
     ])
   );
 
+  override(
+    \Drupal\Core\Url::fromRoute(0),
+    map([
+      'file.ajax_progress' => \Drupal\Core\Url::class,
+    ])
+  );
+
+  override(
+    \Drupal\Core\Link::createFromRoute(1),
+    map([
+      'file.ajax_progress' => \Drupal\Core\Link::class,
+    ])
+  );
+
 }

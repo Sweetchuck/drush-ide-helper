@@ -80,4 +80,62 @@ namespace PHPSTORM_META {
     ])
   );
 
+  override(
+    \Drupal\Core\Url::fromRoute(0),
+    map([
+      'entity.user.admin_form' => \Drupal\Core\Url::class,
+      'entity.user.collection' => \Drupal\Core\Url::class,
+      'entity.user_role.collection' => \Drupal\Core\Url::class,
+      'entity.user_role.delete_form' => \Drupal\Core\Url::class,
+      'entity.user_role.edit_form' => \Drupal\Core\Url::class,
+      'entity.user_role.edit_permissions_form' => \Drupal\Core\Url::class,
+      'user.admin_create' => \Drupal\Core\Url::class,
+      'user.admin_index' => \Drupal\Core\Url::class,
+      'user.admin_permissions' => \Drupal\Core\Url::class,
+      'user.cancel_confirm' => \Drupal\Core\Url::class,
+      'user.login' => \Drupal\Core\Url::class,
+      'user.login.http' => \Drupal\Core\Url::class,
+      'user.login_status.http' => \Drupal\Core\Url::class,
+      'user.logout' => \Drupal\Core\Url::class,
+      'user.logout.http' => \Drupal\Core\Url::class,
+      'user.multiple_cancel_confirm' => \Drupal\Core\Url::class,
+      'user.page' => \Drupal\Core\Url::class,
+      'user.pass' => \Drupal\Core\Url::class,
+      'user.register' => \Drupal\Core\Url::class,
+      'user.reset' => \Drupal\Core\Url::class,
+      'user.reset.form' => \Drupal\Core\Url::class,
+      'user.reset.login' => \Drupal\Core\Url::class,
+      'user.role_add' => \Drupal\Core\Url::class,
+    ])
+  );
+
+  override(
+    \Drupal\Core\Link::createFromRoute(1),
+    map([
+      'entity.user.admin_form' => \Drupal\Core\Link::class,
+      'entity.user.collection' => \Drupal\Core\Link::class,
+      'entity.user_role.collection' => \Drupal\Core\Link::class,
+      'entity.user_role.delete_form' => \Drupal\Core\Link::class,
+      'entity.user_role.edit_form' => \Drupal\Core\Link::class,
+      'entity.user_role.edit_permissions_form' => \Drupal\Core\Link::class,
+      'user.admin_create' => \Drupal\Core\Link::class,
+      'user.admin_index' => \Drupal\Core\Link::class,
+      'user.admin_permissions' => \Drupal\Core\Link::class,
+      'user.cancel_confirm' => \Drupal\Core\Link::class,
+      'user.login' => \Drupal\Core\Link::class,
+      'user.login.http' => \Drupal\Core\Link::class,
+      'user.login_status.http' => \Drupal\Core\Link::class,
+      'user.logout' => \Drupal\Core\Link::class,
+      'user.logout.http' => \Drupal\Core\Link::class,
+      'user.multiple_cancel_confirm' => \Drupal\Core\Link::class,
+      'user.page' => \Drupal\Core\Link::class,
+      'user.pass' => \Drupal\Core\Link::class,
+      'user.register' => \Drupal\Core\Link::class,
+      'user.reset' => \Drupal\Core\Link::class,
+      'user.reset.form' => \Drupal\Core\Link::class,
+      'user.reset.login' => \Drupal\Core\Link::class,
+      'user.role_add' => \Drupal\Core\Link::class,
+    ])
+  );
+
 }

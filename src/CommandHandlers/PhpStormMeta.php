@@ -4,6 +4,8 @@ namespace Drupal\ide_helper\CommandHandlers;
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
 use Drupal\ide_helper\PhpStormMetaFileRenderer;
 use Drupal\ide_helper\Utils;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -56,7 +58,8 @@ class PhpStormMeta {
   protected function initExtensions() {
     return $this
       ->initExtensionsEntityTypes()
-      ->initExtensionsServices();
+      ->initExtensionsServices()
+      ->initExtensionRouteNames();
   }
 
   /**
@@ -77,7 +80,6 @@ class PhpStormMeta {
    * @return $this
    */
   protected function initExtensionsServices() {
-    /** @var \Drupal\Component\Serialization\SerializationInterface $yaml */
     $yaml = \Drupal::service('serialization.yaml');
     $services = $yaml->decode(file_get_contents(DRUPAL_ROOT . '/core/core.services.yml'));
     $this->extensions['Core']['services'] = $services['services'];
@@ -113,10 +115,31 @@ class PhpStormMeta {
   /**
    * @return $this
    */
+  protected function initExtensionRouteNames() {
+    $yaml = \Drupal::service('serialization.yaml');
+    foreach (\Drupal::moduleHandler()->getModuleList() as $extension) {
+      $path = $extension->getPath();
+      $extensionName = $extension->getName();
+      $fileName = "$path/$extensionName.routing.yml";
+      if (!file_exists($fileName)) {
+        continue;
+      }
+
+      $this->extensions[$extensionName]['routing'] = $yaml->decode(file_get_contents($fileName));
+      unset($this->extensions[$extensionName]['routing']['route_callbacks']);
+    }
+
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
   protected function processExtension(string $extensionName) {
     return $this
       ->processExtensionEntityTypes($extensionName)
-      ->processExtensionServices($extensionName);
+      ->processExtensionServices($extensionName)
+      ->processExtensionRouteNames($extensionName);
   }
 
   /**
@@ -131,22 +154,22 @@ class PhpStormMeta {
       [
         'name' => 'storage',
         'base' => 'Storage',
-        'method' => 'getStorage',
+        'method' => 'getStorage(0)',
       ],
       [
         'name' => 'access',
         'base' => 'AccessControlHandler',
-        'method' => 'getAccessControlHandler',
+        'method' => 'getAccessControlHandler(0)',
       ],
       [
         'name' => 'list_builder',
         'base' => 'ListBuilder',
-        'method' => 'getListBuilder',
+        'method' => 'getListBuilder(0)',
       ],
       [
         'name' => 'view_builder',
         'base' => 'ViewBuilder',
-        'method' => 'getViewBuilder',
+        'method' => 'getViewBuilder(0)',
       ],
     ];
 
@@ -186,7 +209,7 @@ class PhpStormMeta {
         $serviceClassName = Utils::classNameFromFqn($serviceClass);
         $this->metaFileRenderer->addOverride(
           ContainerInterface::class,
-          'get',
+          'get(0)',
           [
             $serviceName => $this->getServiceHandlerInterface($serviceClass, $serviceClassName) ?: $serviceClass,
           ]
@@ -194,12 +217,41 @@ class PhpStormMeta {
 
         $this->metaFileRenderer->addOverride(
           \Drupal::class,
-          'service',
+          'service(0)',
           [
             $serviceName => $this->getServiceHandlerInterface($serviceClass, $serviceClassName) ?: $serviceClass,
           ]
         );
       }
+    }
+
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
+  protected function processExtensionRouteNames(string $extensionName) {
+    if (empty($this->extensions[$extensionName]['routing'])) {
+      return $this;
+    }
+
+    foreach (array_keys($this->extensions[$extensionName]['routing']) as $routeName) {
+      $this->metaFileRenderer->addOverride(
+        Url::class,
+        'fromRoute(0)',
+        [
+          $routeName => Url::class,
+        ]
+      );
+
+      $this->metaFileRenderer->addOverride(
+        Link::class,
+        'createFromRoute(1)',
+        [
+          $routeName => Link::class,
+        ]
+      );
     }
 
     return $this;
