@@ -53,4 +53,30 @@ namespace PHPSTORM_META {
     ])
   );
 
+  override(
+    \Drupal\Core\Url::fromRoute(0),
+    map([
+      'aggregator.admin_overview' => \Drupal\Core\Url::class,
+      'aggregator.admin_settings' => \Drupal\Core\Url::class,
+      'aggregator.feed_add' => \Drupal\Core\Url::class,
+      'aggregator.feed_items_delete' => \Drupal\Core\Url::class,
+      'aggregator.feed_refresh' => \Drupal\Core\Url::class,
+      'aggregator.opml_add' => \Drupal\Core\Url::class,
+      'aggregator.page_last' => \Drupal\Core\Url::class,
+    ])
+  );
+
+  override(
+    \Drupal\Core\Link::createFromRoute(1),
+    map([
+      'aggregator.admin_overview' => \Drupal\Core\Link::class,
+      'aggregator.admin_settings' => \Drupal\Core\Link::class,
+      'aggregator.feed_add' => \Drupal\Core\Link::class,
+      'aggregator.feed_items_delete' => \Drupal\Core\Link::class,
+      'aggregator.feed_refresh' => \Drupal\Core\Link::class,
+      'aggregator.opml_add' => \Drupal\Core\Link::class,
+      'aggregator.page_last' => \Drupal\Core\Link::class,
+    ])
+  );
+
 }

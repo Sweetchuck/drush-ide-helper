@@ -15,7 +15,7 @@ namespace PHPSTORM_META {
   );
 
   override(
-    \Gh\Ij::k(0),
+    \Gh\Ij::k(1),
     map([
       'l' => \Gh\Ij\LInterface::class,
       'm' => \Gh\Ij\MInterface::class,

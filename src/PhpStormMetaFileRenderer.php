@@ -24,7 +24,7 @@ PHP;
 
   protected $tplOverride = <<<'PHP'
   override(
-    {{ class }}::{{ method }}(0),
+    {{ class }}::{{ method }},
     map([
       {{ pairs }}
     ])

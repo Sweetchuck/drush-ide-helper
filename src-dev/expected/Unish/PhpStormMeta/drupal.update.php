@@ -31,4 +31,36 @@ namespace PHPSTORM_META {
     ])
   );
 
+  override(
+    \Drupal\Core\Url::fromRoute(0),
+    map([
+      'update.confirmation_page' => \Drupal\Core\Url::class,
+      'update.manual_status' => \Drupal\Core\Url::class,
+      'update.module_install' => \Drupal\Core\Url::class,
+      'update.module_update' => \Drupal\Core\Url::class,
+      'update.report_install' => \Drupal\Core\Url::class,
+      'update.report_update' => \Drupal\Core\Url::class,
+      'update.settings' => \Drupal\Core\Url::class,
+      'update.status' => \Drupal\Core\Url::class,
+      'update.theme_install' => \Drupal\Core\Url::class,
+      'update.theme_update' => \Drupal\Core\Url::class,
+    ])
+  );
+
+  override(
+    \Drupal\Core\Link::createFromRoute(1),
+    map([
+      'update.confirmation_page' => \Drupal\Core\Link::class,
+      'update.manual_status' => \Drupal\Core\Link::class,
+      'update.module_install' => \Drupal\Core\Link::class,
+      'update.module_update' => \Drupal\Core\Link::class,
+      'update.report_install' => \Drupal\Core\Link::class,
+      'update.report_update' => \Drupal\Core\Link::class,
+      'update.settings' => \Drupal\Core\Link::class,
+      'update.status' => \Drupal\Core\Link::class,
+      'update.theme_install' => \Drupal\Core\Link::class,
+      'update.theme_update' => \Drupal\Core\Link::class,
+    ])
+  );
+
 }
