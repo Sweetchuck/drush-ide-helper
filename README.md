@@ -1,7 +1,7 @@
 # Drush - IDE Helper
 
-[![Build Status](https://travis-ci.org/Sweetchuck/drush-ide-helper.svg?branch=master)](https://travis-ci.org/Sweetchuck/drush-ide-helper)
-[![codecov](https://codecov.io/gh/Sweetchuck/drush-ide-helper/branch/master/graph/badge.svg)](https://codecov.io/gh/Sweetchuck/drush-ide-helper)
+[![Build Status](https://travis-ci.org/Sweetchuck/drush-ide-helper.svg?branch=8.x-1.x)](https://travis-ci.org/Sweetchuck/drush-ide-helper)
+[![codecov](https://codecov.io/gh/Sweetchuck/drush-ide-helper/branch/8.x-1.x/graph/badge.svg)](https://codecov.io/gh/Sweetchuck/drush-ide-helper)
 
 The `drush ide-helper-phpstorm-meta` command generates [PhpStorm Advanced Metadata](https://confluence.jetbrains.com/display/PhpStorm/PhpStorm+Advanced+Metadata) files from a running Drupal site.
 
