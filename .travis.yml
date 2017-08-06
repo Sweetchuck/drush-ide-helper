@@ -21,7 +21,7 @@ install:
   - 'composer install'
   - 'composer validate'
   - 'bin/phpcs'
-  - 'phpdbg -qrr bin/phpunit'
+  - 'travis_wait phpdbg -qrr bin/phpunit'
 
 after_success:
   - 'bash <(curl -s https://codecov.io/bash)'

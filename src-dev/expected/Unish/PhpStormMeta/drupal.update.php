@@ -14,7 +14,7 @@ namespace PHPSTORM_META {
       'update.fetcher' => \Drupal\update\UpdateFetcherInterface::class,
       'update.manager' => \Drupal\update\UpdateManagerInterface::class,
       'update.processor' => \Drupal\update\UpdateProcessorInterface::class,
-      'update.root' => \SplString::class,
+      'update.root' => 'string',
       'update.root.factory' => \Drupal\update\UpdateRootFactory::class,
     ])
   );
@@ -26,7 +26,7 @@ namespace PHPSTORM_META {
       'update.fetcher' => \Drupal\update\UpdateFetcherInterface::class,
       'update.manager' => \Drupal\update\UpdateManagerInterface::class,
       'update.processor' => \Drupal\update\UpdateProcessorInterface::class,
-      'update.root' => \SplString::class,
+      'update.root' => 'string',
       'update.root.factory' => \Drupal\update\UpdateRootFactory::class,
     ])
   );

@@ -81,9 +81,15 @@ PHP;
   protected function renderOverride(array $override): string {
     $pairs = [];
     ksort($override['map']);
-    foreach ($override['map'] as $name => $fqn) {
-      $fqn = Utils::prefixFqnWithBackslash($fqn);
-      $pairs[] = "'$name' => $fqn::class";
+    foreach ($override['map'] as $name => $types) {
+      if (is_string($types)) {
+        $types = [$types];
+      }
+
+      $typeHint = Utils::overrideMapTypeHint($types);
+      if ($typeHint) {
+        $pairs[] = "'$name' => $typeHint";
+      }
     }
 
     return strtr(
