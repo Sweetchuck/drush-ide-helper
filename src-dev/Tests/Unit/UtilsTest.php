@@ -122,6 +122,63 @@ class UtilsTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals($expected, Utils::prefixFqnWithBackslash($fqn));
   }
 
+  public function casesSuffixFqnWithClass(): array {
+    return [
+      'plain' => ['A\B::class', 'A\B'],
+      'already' => ['A\B::class', 'A\B::class'],
+      'array' => ['A\B[]', 'A\B[]'],
+    ];
+  }
+
+  /**
+   * @dataProvider casesSuffixFqnWithClass
+   */
+  public function testSuffixFqnWithClass(string $expected, string $fqn): void {
+    $this->assertEquals($expected, Utils::suffixFqnWithClass($fqn));
+  }
+
+  public function casesOverrideMapTypeHint(): array {
+    return [
+      'empty' => [
+        '',
+        [],
+      ],
+      'basic' => [
+        '\A\B::class',
+        [
+          'A\B',
+        ],
+      ],
+      'array' => [
+        "'\A\B[]'",
+        [
+          'A\B[]',
+        ],
+      ],
+      'multi-1' => [
+        "'\A\B|\C\D'",
+        [
+          'A\B',
+          'C\D',
+        ],
+      ],
+      'multi-2' => [
+        "'SplObject|\C\D'",
+        [
+          'SplObject',
+          'C\D',
+        ],
+      ],
+    ];
+  }
+
+  /**
+   * @dataProvider casesOverrideMapTypeHint
+   */
+  public function testOverrideMapTypeHint($expected, array $types): void {
+    $this->assertEquals($expected, Utils::overrideMapTypeHint($types));
+  }
+
   public function casesAutodetectIdeaProjectRoot(): array {
     $rootDir = vfsStream::setup(__FUNCTION__);
     $rootDirUrl = vfsStream::url($rootDir->getName());

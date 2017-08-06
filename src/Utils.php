@@ -45,6 +45,39 @@ class Utils {
     return (mb_substr($fqn, 0, 1) !== '\\') ? "\\$fqn" : $fqn;
   }
 
+  public static function suffixFqnWithClass(string $fqn): string {
+    return (preg_match('@(::class|\[\])$@', $fqn)) ? $fqn : "$fqn::class";
+  }
+
+  public static function overrideMapTypeHint(array $types): string {
+    $typeHint = [];
+    $numOfClasses = 0;
+    foreach ($types as $type) {
+      $isClass = strpos($type, '\\') !== FALSE
+        || class_exists($type)
+        || interface_exists($type);
+
+      $isArray = preg_match('@\[\]$@', $type);
+      if ($isClass) {
+        $type = Utils::prefixFqnWithBackslash($type);
+      }
+
+      if ($isClass && !$isArray) {
+        $numOfClasses++;
+      }
+
+      $typeHint[] = $type;
+    }
+
+    if ($typeHint) {
+      return (count($typeHint) === 1 && $numOfClasses === 1) ?
+        Utils::suffixFqnWithClass(reset($typeHint))
+        : "'" . implode('|', $typeHint) . "'";
+    }
+
+    return '';
+  }
+
   public static function autodetectIdeaProjectRoot(string $cwd): string {
     while (is_dir($cwd)) {
       if (is_dir("$cwd/.idea")) {

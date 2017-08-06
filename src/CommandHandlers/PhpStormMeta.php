@@ -4,6 +4,7 @@ namespace Drupal\ide_helper\CommandHandlers;
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\ide_helper\PhpStormMetaFileRenderer;
@@ -52,7 +53,8 @@ class PhpStormMeta {
   public function execute() {
     $this
       ->initExtensions()
-      ->processExtensions();
+      ->processExtensions()
+      ->processFields();
   }
 
   protected function initExtensions() {
@@ -102,6 +104,9 @@ class PhpStormMeta {
     return $this;
   }
 
+  /**
+   * @return $this
+   */
   protected function processExtensions() {
     foreach (array_keys($this->extensions) as $extensionName) {
       $this
@@ -173,20 +178,20 @@ class PhpStormMeta {
       ],
     ];
 
-    /** @var \Drupal\Core\Entity\EntityTypeInterface $entityTypeDefinition */
-    foreach ($this->extensions[$extensionName]['entityTypes'] as $entityTypeDefinition) {
+    /** @var \Drupal\Core\Entity\EntityTypeInterface $entityType */
+    foreach ($this->extensions[$extensionName]['entityTypes'] as $entityType) {
       foreach ($handlers as $handler) {
-        if (!$entityTypeDefinition->hasHandlerClass($handler['name'])) {
+        if (!$entityType->hasHandlerClass($handler['name'])) {
           continue;
         }
 
-        $handlerClass = $entityTypeDefinition->getHandlerClass($handler['name']);
+        $handlerClass = $entityType->getHandlerClass($handler['name']);
         $handlerInterface = $this->getServiceHandlerInterface($handlerClass, $handler['base']);
         $this->metaFileRenderer->addOverride(
           EntityTypeManagerInterface::class,
           $handler['method'],
           [
-            $entityTypeDefinition->id() => $handlerInterface ?: $handlerClass,
+            $entityType->id() => $handlerInterface ?: $handlerClass,
           ]
         );
       }
@@ -260,6 +265,46 @@ class PhpStormMeta {
   /**
    * @return $this
    */
+  protected function processFields() {
+    /** @var \Drupal\field\Entity\FieldStorageConfig[] $fields */
+    $fields = \Drupal::entityTypeManager()
+      ->getStorage('field_storage_config')
+      ->loadMultiple();
+
+    $entityTypes = \Drupal::entityTypeManager()->getDefinitions();
+    $fieldTypes = \Drupal::service('plugin.manager.field.field_type')->getDefinitions();
+
+    $defaultFieldItemListInterface = FieldItemListInterface::class;
+    foreach ($fields as $field) {
+      $entityType = $entityTypes[$field->getTargetEntityTypeId()];
+      $fieldName = $field->getName();
+      $fieldType = $fieldTypes[$field->getType()];
+
+      $entityTypeClass = $entityType->getClass();
+      $entityTypeInterface = $this->getServiceHandlerInterface($entityTypeClass, '');
+
+      $fieldItemListInterface = $this->getServiceHandlerInterface($fieldType['list_class'], '');
+      if ($fieldItemListInterface === $defaultFieldItemListInterface) {
+        continue;
+      }
+
+      $this->metaFileRenderer->addOverride(
+        $entityTypeInterface,
+        'get(0)',
+        [
+          $fieldName => $fieldItemListInterface,
+        ]
+      );
+    }
+
+    $this->dump('field.fields');
+
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
   protected function dump(string $extensionName) {
     if (!$this->metaFileRenderer->isEmpty()) {
       $outputDir = $this->getOutputDir();
@@ -273,7 +318,7 @@ class PhpStormMeta {
   }
 
   protected function getServiceHandlerInterface(string $fqn, string $base): string {
-    $implements = $fqn === 'SplString' ? [] : class_implements($fqn);
+    $implements = $fqn === 'SplString' ? ['string'] : class_implements($fqn);
     $interfaces = $this->prioritizeInterfaces($fqn, $base, $implements);
     $firstGroup = reset($interfaces);
 
