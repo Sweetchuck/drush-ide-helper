@@ -2,7 +2,7 @@
 <ruleset name="DrupalCustom">
   <file>src/</file>
   <file>src-dev/</file>
-  <file>ide_helper.drush.inc</file>
+  <exclude-pattern>src-dev/fixtures/*</exclude-pattern>
   <file>RoboFile.php</file>
 
   <arg

@@ -22,11 +22,16 @@ class Utils {
     return preg_split('/(?<=[a-z])(?=[A-Z])/', $camelCase);
   }
 
-  public static function numOfWordMatches(string $camelCaseA, string $camelCaseB): int {
+  public static function numOfWordMatches(string $camelCaseA, string $camelCaseB): array {
+    $camelCaseA = str_replace('_', '', $camelCaseA);
+    $camelCaseB = str_replace('_', '', $camelCaseB);
     $aWords = static::splitCamelCase($camelCaseA);
     $bWords = static::splitCamelCase($camelCaseB);
 
-    return count(array_intersect($aWords, $bWords));
+    return [
+      'intersect' => count(array_intersect($aWords, $bWords)),
+      'diff' => count(array_diff($aWords, $bWords)) + count(array_diff($bWords, $aWords)),
+    ];
   }
 
   public static function serviceClass(array $service, array $allServices): string {
@@ -93,6 +98,69 @@ class Utils {
     }
 
     return '';
+  }
+
+  public static function getServiceHandlerInterface(string $fqn, string $base): string {
+    $implements = $fqn === 'SplString' ? ['string'] : class_implements($fqn);
+    $interfaces = static::prioritizeInterfaces($fqn, $base, $implements);
+    $firstGroup = reset($interfaces);
+
+    return $firstGroup ? reset($firstGroup) : '';
+  }
+
+  public static function prioritizeInterfaces(string $fqn, string $base, array $interfaces): array {
+    $priorities = [];
+
+    $ignoredInterfaceNames = [
+      'ContainerAwareInterface',
+    ];
+
+    $classOwner = Utils::extensionNameFromFqn($fqn);
+    $className = Utils::classNameFromFqn($fqn);
+    foreach ($interfaces as $interface) {
+      $interfaceOwner = Utils::extensionNameFromFqn($interface);
+      $interfaceName = Utils::classNameFromFqn($interface);
+
+      if (in_array($interfaceName, $ignoredInterfaceNames)) {
+        continue;
+      }
+
+      if ($interface === "{$fqn}Interface") {
+        $priority = 99;
+      }
+      elseif ($interfaceName === "{$className}Interface") {
+        $priority = 90;
+      }
+      elseif ($interfaceName === "ContentEntity{$base}Interface"
+        || $interfaceName === "ConfigEntity{$base}Interface"
+      ) {
+        $priority = 89;
+      }
+      elseif ($interfaceName === "Entity{$base}Interface") {
+        $priority = 88;
+      }
+      elseif ($classOwner === $interfaceOwner) {
+        $priority = 75;
+      }
+      else {
+        $priority = 50;
+      }
+
+      $numOfWords = Utils::numOfWordMatches(
+        $className,
+        preg_replace('@Interface$@', '', $interfaceName)
+      );
+
+      $priorities[$priority][$interface] = $numOfWords['intersect'] - ($numOfWords['diff'] * 0.2);
+    }
+
+    krsort($priorities, SORT_NUMERIC);
+    foreach ($priorities as $weight => $priority) {
+      arsort($priority, SORT_NUMERIC);
+      $priorities[$weight] = array_keys($priority);
+    }
+
+    return $priorities;
   }
 
 }

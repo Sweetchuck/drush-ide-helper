@@ -1,18 +1,19 @@
 <?php
 
-namespace Drupal\ide_helper\Tests\Unit;
+namespace Drupal\ide_helper\Tests\Unit\Handlers;
 
-use Drupal\ide_helper\PhpStormMetaFileRenderer;
+use Drupal\ide_helper\Handlers\PhpStormMetaRenderer;
+use Drupal\ide_helper\Tests\Unit\IdeHelperTestBase;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 use Webmozart\PathUtil\Path;
 
 /**
- * @covers \Drupal\ide_helper\PhpStormMetaFileRenderer
+ * @covers \Drupal\ide_helper\Handlers\PhpStormMetaRenderer
  *
  * @group IdeHelperUnit
  */
-class PhpStormMetaFileRendererTest extends \PHPUnit_Framework_TestCase {
+class PhpStormMetaRendererTest extends IdeHelperTestBase {
 
   /**
    * @var string
@@ -22,11 +23,11 @@ class PhpStormMetaFileRendererTest extends \PHPUnit_Framework_TestCase {
   public function __construct($name = NULL, array $data = [], $dataName = '') {
     parent::__construct($name, $data, $dataName);
 
-    $this->ideHelperDir = Path::join(__DIR__, '..', '..', '..');
+    $this->ideHelperDir = Path::join(__DIR__, '..', '..', '..', '..');
   }
 
   public function testIsEmpty(): void {
-    $renderer = new PhpStormMetaFileRenderer();
+    $renderer = new PhpStormMetaRenderer();
     $this->assertTrue($renderer->isEmpty());
     $renderer->addOverride('\Foo\Bar', 'baz', ['ab' => '\AbInterface']);
     $this->assertFalse($renderer->isEmpty());
@@ -55,7 +56,7 @@ class PhpStormMetaFileRendererTest extends \PHPUnit_Framework_TestCase {
    * @dataProvider casesRender
    */
   public function testRender(string $expected, array $overrides): void {
-    $renderer = new PhpStormMetaFileRenderer();
+    $renderer = new PhpStormMetaRenderer();
     foreach ($overrides as $override) {
       $renderer->addOverride(...$override);
     }

@@ -10,7 +10,7 @@ use org\bovigo\vfs\vfsStream;
  *
  * @group IdeHelperUnit
  */
-class UtilsTest extends \PHPUnit_Framework_TestCase {
+class UtilsTest extends IdeHelperTestBase {
 
   public function casesExtensionNameFromFqn(): array {
     return [
@@ -55,9 +55,12 @@ class UtilsTest extends \PHPUnit_Framework_TestCase {
   public function casesNumOfWordMatches(): array {
     return [
       'basic' => [
-        2,
+        [
+          'intersect' => 2,
+          'diff' => 1,
+        ],
+        'FooBarBase',
         'FooBar',
-        'FooBarInterface',
       ],
     ];
   }
@@ -65,7 +68,7 @@ class UtilsTest extends \PHPUnit_Framework_TestCase {
   /**
    * @dataProvider casesNumOfWordMatches
    */
-  public function testNumOfWordMatches(int $expected, string $a, string $b): void {
+  public function testNumOfWordMatches(array $expected, string $a, string $b): void {
     $this->assertEquals($expected, Utils::numOfWordMatches($a, $b));
   }
 
@@ -180,48 +183,45 @@ class UtilsTest extends \PHPUnit_Framework_TestCase {
   }
 
   public function casesAutodetectIdeaProjectRoot(): array {
-    $rootDir = vfsStream::setup(__FUNCTION__);
-    $rootDirUrl = vfsStream::url($rootDir->getName());
-
-    vfsStream::create(
-      [
-        'project-01' => [
-          'a' => [
-            'b' => [
-              'c' => [],
-            ],
+    $structure = [
+      'project-01' => [
+        'a' => [
+          'b' => [
+            'c' => [],
           ],
-          '.idea' => [],
         ],
-        'foo' => [
-          'bar' => [
-            'project-02' => [
-              'd' => [
-                'e' => [
-                  'f' => [],
-                ],
+        '.idea' => [],
+      ],
+      'foo' => [
+        'bar' => [
+          'project-02' => [
+            'd' => [
+              'e' => [
+                'f' => [],
               ],
-              '.idea' => [],
             ],
-            'not-a-project' => [],
+            '.idea' => [],
           ],
+          'not-a-project' => [],
         ],
       ],
-      $rootDir
-    );
+    ];
 
     return [
       'cwd is the project root' => [
-        "$rootDirUrl/project-01",
-        "$rootDirUrl/project-01",
+        'project-01',
+        'project-01',
+        $structure,
       ],
       'cwd is under the project root' => [
-        "$rootDirUrl/foo/bar/project-02",
-        "$rootDirUrl/foo/bar/project-02/d/e/f",
+        'foo/bar/project-02',
+        'foo/bar/project-02/d/e/f',
+        $structure,
       ],
       'there is no .idea in the parent directories' => [
         '',
-        "$rootDirUrl/foo/bar/not-a-project",
+        'foo/bar/not-a-project',
+        $structure,
       ],
     ];
   }
@@ -229,8 +229,57 @@ class UtilsTest extends \PHPUnit_Framework_TestCase {
   /**
    * @dataProvider casesAutodetectIdeaProjectRoot
    */
-  public function testAutodetectIdeaProjectRoot(string $expected, string $cwd): void {
+  public function testAutodetectIdeaProjectRoot(string $expected, string $cwd, array $dirStructure): void {
+    $rootDir = $this->vfsRootDirFromMethod(__METHOD__);
+    $vfs = vfsStream::setup($rootDir, NULL, $dirStructure);
+    $rootDirUrl = $vfs->url();
+
+    $expected = $expected ? "$rootDirUrl/$expected" : $expected;
+    $cwd = "$rootDirUrl/$cwd";
+
     $this->assertEquals($expected, Utils::autodetectIdeaProjectRoot($cwd));
+  }
+
+  public function casesGetServiceHandlerInterface(): array {
+    return [
+      'Drupal\node\NodeStorage' => [
+        'Drupal\node\NodeStorageInterface',
+        'Drupal\node\NodeStorage',
+        'Storage',
+      ],
+      'Drupal\node\NodeAccessControlHandler' => [
+        'Drupal\node\NodeAccessControlHandlerInterface',
+        'Drupal\node\NodeAccessControlHandler',
+        'AccessControlHandler',
+      ],
+      'Drupal\node\NodeListBuilder' => [
+        'Drupal\Core\Entity\EntityListBuilderInterface',
+        'Drupal\node\NodeListBuilder',
+        'ListBuilder',
+      ],
+      'Drupal\node\NodeViewBuilder' => [
+        'Drupal\Core\Entity\EntityViewBuilderInterface',
+        'Drupal\node\NodeViewBuilder',
+        'ViewBuilder',
+      ],
+      'Drupal\Core\Template\Loader\FilesystemLoader' => [
+        'Twig_LoaderInterface',
+        'Drupal\Core\Template\Loader\FilesystemLoader',
+        '',
+      ],
+      'Drupal\Core\Breadcrumb\BreadcrumbManager' => [
+        'Drupal\Core\Breadcrumb\BreadcrumbBuilderInterface',
+        'Drupal\Core\Breadcrumb\BreadcrumbManager',
+        '',
+      ],
+    ];
+  }
+
+  /**
+   * @dataProvider casesGetServiceHandlerInterface
+   */
+  public function testGetServiceHandlerInterface($expected, string $fqn, string $base): void {
+    $this->assertEquals($expected, Utils::getServiceHandlerInterface($fqn, $base));
   }
 
 }

@@ -19,7 +19,7 @@
 
     <!--User must have write permissions to this directory.-->
     <!--If not supplied, defaults to sys_get_temp_dir().-->
-    <!--<var name="UNISH_TMP" value="/tmp"/>-->
+    <const name="UNISH_TMP" value="./src-dev/fixtures" />
 
     <!--Uncomment the line below if your path to drush differs from `which drush`. Use absolute path.-->
     <!--<var name="UNISH_DRUSH" value="./bin/drush"/>-->
@@ -47,7 +47,6 @@
   <filter>
     <whitelist processUncoveredFilesFromWhitelist="true">
       <directory>src/</directory>
-      <file>ide_helper.drush.inc</file>
     </whitelist>
   </filter>
 

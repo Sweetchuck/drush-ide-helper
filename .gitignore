@@ -1,4 +1,18 @@
 
 /bin/
 /reports/
+/src-dev/fixtures/*
+!/src-dev/fixtures/drush-sut/scripts/Composer/ScriptHandler.php
+!/src-dev/fixtures/drush-sut/web/sites/default/default.services.yml
+!/src-dev/fixtures/drush-sut/web/sites/default/default.settings.php
+!/src-dev/fixtures/drush-sut/web/sites/development.services.yml
+!/src-dev/fixtures/drush-sut/web/sites/example.settings.local.php
+!/src-dev/fixtures/drush-sut/web/sites/example.sites.php
+!/src-dev/fixtures/drush-sut/composer.json
+!/src-dev/fixtures/drush-sut/composer.lock
 /vendor/
+
+/phpcs.xml
+/phpunit.xml
+
+

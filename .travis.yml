@@ -16,6 +16,7 @@ before_install:
   - 'export COMPOSER_ALLOW_SUPERUSER=1'
   - 'export UNISH_DRUSH="$(pwd)/bin/drush"'
   - "export UNISH_DB_URL='mysql://root@127.0.0.1'"
+  - 'export UNISH_TMP="$(pwd)/src-dev/fixtures"'
 
 install:
   - 'composer install'

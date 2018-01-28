@@ -2,6 +2,7 @@
 
 namespace Drupal\ide_helper\Tests\Unish;
 
+use Symfony\Component\Filesystem\Filesystem;
 use Unish\CommandUnishTestCase;
 use Webmozart\PathUtil\Path;
 
@@ -10,6 +11,9 @@ use Webmozart\PathUtil\Path;
  */
 class IdeHelperPhpStormMetaCommandTest extends CommandUnishTestCase {
 
+  /**
+   * @var string
+   */
   protected $ideHelperDir = '';
 
   /**
@@ -25,25 +29,11 @@ class IdeHelperPhpStormMetaCommandTest extends CommandUnishTestCase {
    * {@inheritdoc}
    */
   protected function setUp() {
+    if (!$this->getSites()) {
+      $this->setUpDrupal(1, TRUE);
+    }
+
     parent::setUp();
-
-    $this->setUpDrupal(1, TRUE);
-
-    $options = $this->options();
-
-    $this->drush(
-      'pm-enable',
-      ['aggregator', 'taxonomy'],
-      $options
-    );
-
-    $this->drush(
-      'php-script',
-      ['create-fields'],
-      ['script-path' => __DIR__ . '/resources'] + $options
-    );
-
-    $this->drush('cache-rebuild', [], $options);
   }
 
   /**
@@ -59,40 +49,89 @@ class IdeHelperPhpStormMetaCommandTest extends CommandUnishTestCase {
    * Clean .phpstorm.meta.php directory.
    */
   protected function cleanDirPhpStormMetaPhp() {
-    unish_file_delete_recursive(Path::join($this->webroot(), '.phpstorm.meta.php'));
+    $fs = new Filesystem();
+    $fs->remove(Path::join($this->webroot(), '.phpstorm.meta.php'));
   }
 
   /**
    * All in one test.
    */
   public function testAllInOne() {
-    $this->drush(
-      'ide-helper-phpstorm-meta',
-      [],
-      $this->options(),
-      NULL,
-      NULL,
-      1
-    );
-    $this->assertContains('The output directory cannot be detected automatically.', $this->getErrorOutput());
+    $options = $this->options();
 
     $this->drush(
-      'ide-helper-phpstorm-meta',
-      [],
-      $this->options() + ['output-dir' => 'index.php'],
+      'pm-enable',
+      ['aggregator', 'taxonomy'],
+      $options
+    );
+
+    $this->drush(
+      'php-script',
+      ['create-fields'],
+      ['script-path' => __DIR__ . '/resources'] + $options
+    );
+
+    $this->drush('cache-rebuild', [], $options);
+
+    $this->caseFailOutputDirIsFile();
+    $this->caseSuccessOutputDirExplicit();
+    $this->caseSuccessOutputDirDetection();
+  }
+
+  /**
+   * @todo Activate this test.
+   *
+   * @return $this
+   */
+  protected function caseFailOutputDirDetection() {
+    $this->drush(
+      'ide-helper:phpstorm-meta',
+      [
+        '--outputDir=',
+      ],
+      $this->options(),
       NULL,
-      NULL,
+      '/tmp',
       1
     );
     $this->assertContains(
-      "The given path 'index.php' cannot be used as output directory, because it is exists but not a directory.",
-      $this->getErrorOutput()
+      'The output directory cannot be detected automatically.',
+      $this->getErrorOutput(),
+      'Error message found: The output directory cannot be detected ...'
     );
 
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
+  protected function caseFailOutputDirIsFile() {
     $this->drush(
-      'ide-helper-phpstorm-meta',
+      'ide-helper:phpstorm-meta',
       [],
-      $this->options() + ['output-dir' => '.']
+      $this->options() + ['outputDir' => 'index.php'],
+      NULL,
+      NULL,
+      3
+    );
+    $this->assertContains(
+      "The given path 'index.php' cannot be used as output directory, because it is exists but not a directory.",
+      $this->getErrorOutput(),
+      "Error message found: The given path 'index.php' cannot be used ..."
+    );
+
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
+  protected function caseSuccessOutputDirExplicit() {
+    $this->drush(
+      'ide-helper:phpstorm-meta',
+      [],
+      $this->options() + ['outputDir' => '.']
     );
 
     $fileNames = [
@@ -117,13 +156,22 @@ class IdeHelperPhpStormMetaCommandTest extends CommandUnishTestCase {
       );
     }
 
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
+  protected function caseSuccessOutputDirDetection() {
     $this->cleanDirPhpStormMetaPhp();
     $this->mkdir(Path::join($this->webroot(), '.idea'));
     $this->drush(
-      'ide-helper-phpstorm-meta',
+      'ide-helper:phpstorm-meta',
       [],
       $this->options()
     );
+
+    return $this;
   }
 
   /**
@@ -135,7 +183,7 @@ class IdeHelperPhpStormMetaCommandTest extends CommandUnishTestCase {
   protected function options() {
     return [
       'root' => $this->webroot(),
-      'uri' => key($this->getSites()),
+      'uri' => key(static::getSites()),
       'yes' => NULL,
       'include' => $this->ideHelperDir,
       'php' => PHP_BINARY,

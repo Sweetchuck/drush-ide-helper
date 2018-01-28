@@ -1,0 +1,85 @@
+{
+    "name": "drupal/ide_helper_test",
+    "description": "@todo",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "repositories": {
+        "drupal-8": {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    },
+    "require": {
+        "composer/installers": "^1.2",
+        "cweagans/composer-patches": "^1.6",
+        "drupal-composer/drupal-scaffold": "^2.2",
+        "drupal/core": "^8.4",
+        "drush/drush": "9.0.x-dev",
+        "webflo/drupal-finder": "^1.0.0",
+        "webmozart/path-util": "^2.3"
+    },
+    "require-dev": {
+        "mikey179/vfsstream": "~1.2",
+        "phpunit/phpunit": ">=4.8.28 <5"
+    },
+    "conflict": {
+        "drupal/drupal": "*"
+    },
+    "autoload": {
+        "psr-4":    {
+            "Drupal\\ide_helper\\": "../../../src/",
+            "Drush\\Commands\\ide_helper\\": "../../../src/Commands/ide_helper/",
+            "DrushSut\\": "scripts/"
+        }
+    },
+    "autoload-dev": {
+        "psr-0": {
+            "Unish": "vendor/drush/drush/tests/"
+        },
+        "psr-4": {
+            "Drupal\\ide_helper\\Composer\\": "../../../src-dev/Composer/",
+            "Drupal\\ide_helper\\Tests\\": "../../../src-dev/Tests/"
+        }
+    },
+    "scripts": {
+        "drupal-scaffold": "DrupalComposer\\DrupalScaffold\\Plugin::scaffold",
+        "pre-install-cmd": [
+            "\\DrushSut\\Composer\\ScriptHandler::checkComposerVersion"
+        ],
+        "pre-update-cmd": [
+            "\\DrushSut\\Composer\\ScriptHandler::checkComposerVersion"
+        ],
+        "post-install-cmd": [
+            "\\DrushSut\\Composer\\ScriptHandler::createRequiredFiles"
+        ],
+        "post-update-cmd": [
+            "\\DrushSut\\Composer\\ScriptHandler::createRequiredFiles"
+        ]
+    },
+    "extra": {
+        "drupal-scaffold": {
+            "excludes": [
+                ".csslintrc",
+                ".editorconfig",
+                ".eslintignore",
+                ".eslintrc.json",
+                ".gitattributes",
+                ".htaccess",
+                "web.config"
+            ]
+        },
+        "installer-paths": {
+            "web/core": ["type:drupal-core"],
+            "web/libraries/{$name}": ["type:drupal-library"],
+            "web/modules/contrib/{$name}": ["type:drupal-module"],
+            "web/profiles/contrib/{$name}": ["type:drupal-profile"],
+            "web/themes/contrib/{$name}": ["type:drupal-theme"],
+            "drush/contrib/{$name}": ["type:drupal-drush"]
+        }
+    }
+}

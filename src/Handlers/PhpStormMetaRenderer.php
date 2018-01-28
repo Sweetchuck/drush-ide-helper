@@ -1,11 +1,19 @@
 <?php
 
-namespace Drupal\ide_helper;
+namespace Drupal\ide_helper\Handlers;
 
-class PhpStormMetaFileRenderer {
+use Drupal\ide_helper\Utils;
 
+class PhpStormMetaRenderer {
+
+  /**
+   * @var array
+   */
   protected $overrides = [];
 
+  /**
+   * @var string
+   */
   protected $tplFile = <<<'PHP'
 <?php
 

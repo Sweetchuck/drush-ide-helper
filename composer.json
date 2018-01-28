@@ -1,7 +1,7 @@
 {
     "name": "drupal/ide_helper",
     "description": "IDE helper",
-    "license": "GPL-3.0",
+    "license": "GPL-3.0-or-later",
     "type": "drupal-drush",
     "keywords": [
         "drupal",
@@ -15,26 +15,33 @@
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
+    "repositories": {
+        "drupal-8": {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    },
     "require": {
         "php": ">=7.1",
         "ext-mbstring": "*",
-        "drush/drush": "^8.1"
+        "drupal/core": "^8.4",
+        "drush/drush": "9.0.x-dev"
     },
     "require-dev": {
-        "sweetchuck/git-hooks": "^0.0",
-        "sweetchuck/robo-git": "^0.0",
-        "sweetchuck/robo-phpcs": "^0.0",
         "consolidation/robo": "^1.1",
         "drupal/coder": "^8.2",
         "mikey179/vfsStream": "^1.6",
-        "phpunit/phpunit": "5.*",
-        "symfony/finder": "^2.8",
-        "symfony/process": "^3.3",
+        "phpunit/phpunit": "^5.7",
+        "sweetchuck/git-hooks": "^0.0",
+        "sweetchuck/robo-git": "^0.0",
+        "sweetchuck/robo-phpcs": "^0.0",
+        "symfony/finder": "^3.3",
         "webmozart/path-util": "^2.3"
     },
     "autoload": {
         "psr-4":    {
-            "Drupal\\ide_helper\\": "src/"
+            "Drupal\\ide_helper\\": "src/",
+            "Drush\\Commands\\ide_helper\\": "src/Commands/ide_helper/"
         }
     },
     "autoload-dev": {
@@ -42,8 +49,17 @@
             "Unish": "vendor/drush/drush/tests/"
         },
         "psr-4": {
+            "Drupal\\Tests\\": "vendor/drupal/core/tests",
+            "Drupal\\field\\": "vendor/drupal/core/modules/field/src",
+            "Drupal\\node\\": "vendor/drupal/core/modules/node/src",
+            "Drupal\\user\\": "vendor/drupal/core/modules/user/src",
             "Drupal\\ide_helper\\Composer\\": "src-dev/Composer/",
             "Drupal\\ide_helper\\Tests\\": "src-dev/Tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-9.x-1.x": "1.0.x-dev"
         }
     },
     "scripts": {
