@@ -1,11 +1,13 @@
 <?php
 
 use League\Container\ContainerInterface;
+use Robo\Contract\TaskInterface;
 use Robo\Tasks;
 use Robo\Collection\CollectionBuilder;
 use Sweetchuck\LintReport\Reporter\BaseReporter;
 use Sweetchuck\Robo\Git\GitTaskLoader;
 use Sweetchuck\Robo\Phpcs\PhpcsTaskLoader;
+use Sweetchuck\Robo\PhpMessDetector\PhpmdTaskLoader;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
@@ -15,6 +17,7 @@ class RoboFile extends Tasks {
 
   use GitTaskLoader;
   use PhpcsTaskLoader;
+  use PhpmdTaskLoader;
 
   /**
    * @var array
@@ -101,11 +104,16 @@ class RoboFile extends Tasks {
     return $this
       ->collectionBuilder()
       ->addTask($this->taskComposerValidate())
-      ->addTask($this->getTaskPhpcsLint());
+      ->addTask($this->getTaskPhpcsLint())
+      ->addTask($this->getTaskPhpmdLint());
   }
 
   public function lintPhpcs(): CollectionBuilder {
     return $this->getTaskPhpcsLint();
+  }
+
+  public function lintPhpmd(): CollectionBuilder {
+    return $this->getTaskPhpmdLint();
   }
 
   protected function errorOutput(): ?OutputInterface {
@@ -230,6 +238,23 @@ class RoboFile extends Tasks {
     }
 
     return $this->taskPhpcsLintFiles($options);
+  }
+
+  protected function getTaskPhpmdLint(): TaskInterface {
+    $ruleSetName = 'custom';
+
+    $task = $this
+      ->taskPhpmdLintFiles()
+      ->setInputFile("./rulesets/$ruleSetName.include-pattern.txt")
+      ->setRuleSetFileNames([$ruleSetName])
+      ->setOutput($this->output());
+
+    $excludeFileName = "./rulesets/$ruleSetName.exclude-pattern.txt";
+    if (file_exists($excludeFileName)) {
+      $task->addExcludePathsFromFile($excludeFileName);
+    }
+
+    return $task;
   }
 
   protected function isPhpExtensionAvailable(string $extension): bool {

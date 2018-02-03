@@ -20,9 +20,9 @@ before_install:
 
 install:
   - 'composer install --no-progress'
-  - 'composer validate'
-  - 'bin/phpcs'
-  - 'env | grep UNISH'
+
+script:
+  - 'bin/robo lint'
   - 'travis_wait phpdbg -qrr bin/phpunit'
 
 after_success:

@@ -29,12 +29,14 @@
     },
     "require-dev": {
         "consolidation/robo": "^1.1",
+        "danielstjules/stringy": "^3.1",
         "drupal/coder": "^8.2",
         "mikey179/vfsStream": "^1.6",
         "phpunit/phpunit": "^5.7",
         "sweetchuck/git-hooks": "^0.0",
         "sweetchuck/robo-git": "^0.0",
         "sweetchuck/robo-phpcs": "^0.0",
+        "sweetchuck/robo-phpmd": "^0.0.1",
         "symfony/finder": "^3.3",
         "webmozart/path-util": "^2.3"
     },

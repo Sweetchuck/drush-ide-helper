@@ -70,9 +70,8 @@ class PhpStormMetaCommands extends Tasks {
             static::EXIT_CODE_OUTPUT_DIR_DETECTION
           );
         }
-        else {
-          $input->setOption($outputDirOptionName, $outputDir);
-        }
+
+        $input->setOption($outputDirOptionName, $outputDir);
       }
       elseif (!file_exists($outputDir)) {
         throw new \InvalidArgumentException(
@@ -137,17 +136,13 @@ class PhpStormMetaCommands extends Tasks {
           return 0;
         }
 
-        $relativeOutputDir = $options['outputDir'];
         try {
-          if ($cwd === $relativeOutputDir) {
-            $relativeOutputDir = '.';
-          }
-          else {
-            $relativeOutputDir = Path::makeRelative($options['outputDir'], $cwd);
-          }
+          $relativeOutputDir = $cwd === $options['outputDir'] ?
+            '.'
+            : Path::makeRelative($options['outputDir'], $cwd);
         }
         catch (\Exception $e) {
-          // Nothing to do.
+          $relativeOutputDir = NULL;
         }
         $relativeOutputDir = $relativeOutputDir ?: $options['outputDir'];
 

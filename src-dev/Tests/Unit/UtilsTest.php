@@ -68,8 +68,8 @@ class UtilsTest extends IdeHelperTestBase {
   /**
    * @dataProvider casesNumOfWordMatches
    */
-  public function testNumOfWordMatches(array $expected, string $a, string $b): void {
-    $this->assertEquals($expected, Utils::numOfWordMatches($a, $b));
+  public function testNumOfWordMatches(array $expected, string $aText, string $bText): void {
+    $this->assertEquals($expected, Utils::numOfWordMatches($aText, $bText));
   }
 
   public function casesServiceClass(): array {

@@ -112,7 +112,7 @@ class Scripts {
     if ($type === Process::OUT) {
       static::$event->getIO()->write($buffer);
     }
-    else {
+    elseif ($type === Process::ERR) {
       static::$event->getIO()->writeError($buffer);
     }
   }
