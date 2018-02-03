@@ -219,7 +219,7 @@ class UtilsTest extends IdeHelperTestBase {
         $structure,
       ],
       'there is no .idea in the parent directories' => [
-        '',
+        NULL,
         'foo/bar/not-a-project',
         $structure,
       ],
@@ -229,7 +229,7 @@ class UtilsTest extends IdeHelperTestBase {
   /**
    * @dataProvider casesAutodetectIdeaProjectRoot
    */
-  public function testAutodetectIdeaProjectRoot(string $expected, string $cwd, array $dirStructure): void {
+  public function testAutodetectIdeaProjectRoot(?string $expected, string $cwd, array $dirStructure): void {
     $rootDir = $this->vfsRootDirFromMethod(__METHOD__);
     $vfs = vfsStream::setup($rootDir, NULL, $dirStructure);
     $rootDirUrl = $vfs->url();

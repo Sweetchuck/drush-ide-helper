@@ -23,11 +23,16 @@ class Scripts {
   protected static $processCallbackWrapper;
 
   /**
+   * @var string
+   */
+  protected static $drushSutRoot = 'src-dev/fixtures/drush-sut';
+
+  /**
    * Composer event callback.
    */
-  public static function postInstallCmd(Event $event) {
+  public static function postInstallCmd(Event $event): int {
     static::init($event);
-    GitHooks::deploy($event);
+    static::gitHooksDeploy();
     static::phpcsConfigSet();
     static::prepareDrushSut();
 
@@ -37,17 +42,28 @@ class Scripts {
   /**
    * Composer event callback.
    */
-  public static function postUpdateCmd(Event $event) {
-    GitHooks::deploy($event);
+  public static function postUpdateCmd(Event $event): int {
+    static::init($event);
+    static::gitHooksDeploy();
 
     return 0;
   }
 
   protected static function init(Event $event) {
     static::$event = $event;
-    static::$processCallbackWrapper = function (string $type, string $buffer) {
-      static::processCallback($type, $buffer);
-    };
+    if (!static::$processCallbackWrapper) {
+      static::$processCallbackWrapper = function (string $type, string $buffer) {
+        static::processCallback($type, $buffer);
+      };
+    }
+  }
+
+  protected static function gitHooksDeploy(): void {
+    if (!static::$event->isDevMode()) {
+      return;
+    }
+
+    GitHooks::deploy(static::$event);
   }
 
   protected static function phpcsConfigSet(): void {
@@ -63,9 +79,7 @@ class Scripts {
       escapeshellarg($config->get('vendor-dir') . '/drupal/coder/coder_sniffer'),
     ];
 
-    $cmd = vsprintf($cmdPattern, $cmdArgs);
-    $process = new Process($cmd);
-    $process->run(static::$processCallbackWrapper);
+    static::processRun('.', vsprintf($cmdPattern, $cmdArgs));
   }
 
   protected static function prepareDrushSut(): void {
@@ -73,13 +87,25 @@ class Scripts {
       return;
     }
 
-    $workingDirectory = 'src-dev/fixtures/drush-sut';
-    $cmd = 'composer install';
+    static::prepareDrushSutComposerInstall();
+    static::prepareDrushSutDrupalScaffold();
+  }
 
-    static::$event->getIO()->write("Run '$cmd' in '$workingDirectory'");
-    $process = new Process($cmd);
+  protected static function prepareDrushSutComposerInstall(): void {
+    static::processRun(static::$drushSutRoot, 'composer install --no-progress');
+  }
+
+  protected static function prepareDrushSutDrupalScaffold(): void {
+    static::processRun(static::$drushSutRoot, 'composer run drupal-scaffold');
+  }
+
+  protected static function processRun(string $workingDirectory, string $command): Process {
+    static::$event->getIO()->write("Run '$command' in '$workingDirectory'");
+    $process = new Process($command);
     $process->setWorkingDirectory($workingDirectory);
     $process->run(static::$processCallbackWrapper);
+
+    return $process;
   }
 
   protected static function processCallback(string $type, string $buffer): void {

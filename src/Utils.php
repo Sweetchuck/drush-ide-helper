@@ -83,7 +83,7 @@ class Utils {
     return '';
   }
 
-  public static function autodetectIdeaProjectRoot(string $cwd): string {
+  public static function autodetectIdeaProjectRoot(string $cwd): ?string {
     while (is_dir($cwd)) {
       if (is_dir("$cwd/.idea")) {
         return $cwd;
@@ -91,13 +91,13 @@ class Utils {
 
       $parent = Path::join($cwd, '..');
       if ($parent === $cwd) {
-        return '';
+        return NULL;
       }
 
       $cwd = $parent;
     }
 
-    return '';
+    return NULL;
   }
 
   public static function getServiceHandlerInterface(string $fqn, string $base): string {

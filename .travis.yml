@@ -19,9 +19,10 @@ before_install:
   - 'export UNISH_TMP="$(pwd)/src-dev/fixtures"'
 
 install:
-  - 'composer install'
+  - 'composer install --no-progress'
   - 'composer validate'
   - 'bin/phpcs'
+  - 'env | grep UNISH'
   - 'travis_wait phpdbg -qrr bin/phpunit'
 
 after_success:

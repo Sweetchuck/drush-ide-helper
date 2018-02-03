@@ -2,13 +2,12 @@
 
 namespace Drush\Commands\ide_helper;
 
-use Consolidation\AnnotatedCommand\AnnotationData;
 use Consolidation\AnnotatedCommand\CommandData;
 use Drupal\ide_helper\Utils;
 use Drupal\ide_helper\Robo\IdeHelperPhpstormMetaTaskLoader;
-use Drush\Symfony\DrushArgvInput;
 use Robo\State\Data as RoboStateData;
 use Robo\Tasks;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Webmozart\PathUtil\Path;
@@ -35,12 +34,17 @@ class PhpStormMetaCommands extends Tasks {
   /**
    * @hook init ide-helper:phpstorm-meta
    */
-  public function ideHelperPhpstormMetaHookInit(DrushArgvInput $input, AnnotationData $annotationData) {
+  public function ideHelperPhpstormMetaHookInit(InputInterface $input) {
     $outputDirOptionName = 'outputDir';
     if ($input->hasOption($outputDirOptionName)) {
       $outputDir = $input->getOption($outputDirOptionName);
-      if (!$outputDir) {
-        $input->setOption($outputDirOptionName, Utils::autodetectIdeaProjectRoot(getcwd()));
+      if ($outputDir === NULL) {
+        $cwd = $this
+          ->getContainer()
+          ->get('config')
+          ->get('env.cwd');
+
+        $input->setOption($outputDirOptionName, Utils::autodetectIdeaProjectRoot($cwd));
       }
     }
   }
@@ -50,19 +54,27 @@ class PhpStormMetaCommands extends Tasks {
    */
   public function ideHelperPhpstormMetaHookValidate(CommandData $commandData): void {
     $outputDirOptionName = 'outputDir';
-    if ($commandData->input()->hasOption($outputDirOptionName)) {
-      $outputDir = $commandData->input()->getOption($outputDirOptionName);
-      if (!$outputDir) {
-        $outputDir = Utils::autodetectIdeaProjectRoot(getcwd());
+    $input = $commandData->input();
+    if ($input->hasOption($outputDirOptionName)) {
+      $outputDir = $input->getOption($outputDirOptionName);
+      if ($outputDir === NULL) {
+        $cwd = $this
+          ->getContainer()
+          ->get('config')
+          ->get('env.cwd');
+
+        $outputDir = Utils::autodetectIdeaProjectRoot($cwd);
         if (!$outputDir) {
           throw new \InvalidArgumentException(
-            dt('The output directory cannot be detected automatically.'),
+            dt("The output directory cannot be detected automatically. Current directory: '$cwd'"),
             static::EXIT_CODE_OUTPUT_DIR_DETECTION
           );
         }
+        else {
+          $input->setOption($outputDirOptionName, $outputDir);
+        }
       }
-
-      if (!file_exists($outputDir)) {
+      elseif (!file_exists($outputDir)) {
         throw new \InvalidArgumentException(
           dt(
             "The given path '@path' is not exists.",
@@ -73,8 +85,7 @@ class PhpStormMetaCommands extends Tasks {
           static::EXIT_CODE_OUTPUT_DIR_NOT_EXISTS
         );
       }
-
-      if (!is_dir($outputDir)) {
+      elseif (!is_dir($outputDir)) {
         throw new \InvalidArgumentException(
           dt(
             "The given path '@path' cannot be used as output directory, because it is exists but not a directory.",
@@ -96,7 +107,7 @@ class PhpStormMetaCommands extends Tasks {
    */
   public function ideHelperPhpstormMeta(
     array $options = [
-      'outputDir' => '',
+      'outputDir' => NULL,
       'multipleFiles' => TRUE,
     ]
   ) {
@@ -111,20 +122,29 @@ class PhpStormMetaCommands extends Tasks {
     $rendererTask->setMultipleFiles($options['multipleFiles']);
     $rendererTask->deferTaskConfiguration('setPhpStormMeta', 'phpStormMeta');
 
+    $cwd = $this
+      ->getContainer()
+      ->get('config')
+      ->get('env.cwd');
+
     return $this
       ->collectionBuilder()
       ->addTask($collectorTask)
       ->addTask($rendererTask)
       ->addTask($this->taskFilesystemStack()->remove($options['outputDir'] . '/.phpstorm.meta.php'))
-      ->addCode(function (RoboStateData $data) use ($options) : int {
+      ->addCode(function (RoboStateData $data) use ($options, $cwd) : int {
         if (empty($data['phpStormMetaFiles'])) {
           return 0;
         }
 
-        $cwd = getcwd();
         $relativeOutputDir = $options['outputDir'];
         try {
-          $relativeOutputDir = Path::makeRelative($options['outputDir'], $cwd);
+          if ($cwd === $relativeOutputDir) {
+            $relativeOutputDir = '.';
+          }
+          else {
+            $relativeOutputDir = Path::makeRelative($options['outputDir'], $cwd);
+          }
         }
         catch (\Exception $e) {
           // Nothing to do.
