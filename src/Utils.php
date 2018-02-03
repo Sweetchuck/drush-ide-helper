@@ -58,10 +58,7 @@ class Utils {
     $typeHint = [];
     $numOfClasses = 0;
     foreach ($types as $type) {
-      $isClass = strpos($type, '\\') !== FALSE
-        || class_exists($type)
-        || interface_exists($type);
-
+      $isClass = static::isClass($type);
       $isArray = preg_match('@\[\]$@', $type);
       if ($isClass) {
         $type = Utils::prefixFqnWithBackslash($type);
@@ -81,6 +78,12 @@ class Utils {
     }
 
     return '';
+  }
+
+  public static function isClass(string $identifier): bool {
+    return strpos($identifier, '\\') !== FALSE
+      || class_exists($identifier)
+      || interface_exists($identifier);
   }
 
   public static function autodetectIdeaProjectRoot(string $cwd): ?string {
@@ -108,6 +111,9 @@ class Utils {
     return $firstGroup ? reset($firstGroup) : '';
   }
 
+  /**
+   * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+   */
   public static function prioritizeInterfaces(string $fqn, string $base, array $interfaces): array {
     $priorities = [];
 
@@ -125,6 +131,7 @@ class Utils {
         continue;
       }
 
+      $priority = 50;
       if ($interface === "{$fqn}Interface") {
         $priority = 99;
       }
@@ -142,9 +149,6 @@ class Utils {
       elseif ($classOwner === $interfaceOwner) {
         $priority = 75;
       }
-      else {
-        $priority = 50;
-      }
 
       $numOfWords = Utils::numOfWordMatches(
         $className,
@@ -161,6 +165,15 @@ class Utils {
     }
 
     return $priorities;
+  }
+
+  public static function prefixArrayKeys(string $prefix, array $array): array {
+    $return = [];
+    foreach ($array as $key => $value) {
+      $return["{$prefix}{$key}"] = $value;
+    }
+
+    return $return;
   }
 
 }

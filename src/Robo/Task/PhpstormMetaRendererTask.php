@@ -71,19 +71,32 @@ class PhpstormMetaRendererTask extends BaseTask {
       ->get('class_resolver')
       ->getInstanceFromDefinition(PhpStormMetaRenderer::class);
 
-    if ($this->getMultipleFiles()) {
-      foreach ($this->getPhpStormMeta() as $extensionNameFull => $phpStormMeta) {
-        $extensionNameFullLower = mb_strtolower($extensionNameFull);
-        $this->addPhpStormMetaToRenderer($phpStormMeta);
-        $this->assets['phpStormMetaFiles'][".phpstorm.meta.php/$extensionNameFullLower.php"] = $this->phpStormMetaRenderer->render();
-      }
+    $this->getMultipleFiles() ? $this->runActionMultipleFiles() : $this->runActionSingleFile();
+
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
+  protected function runActionMultipleFiles() {
+    foreach ($this->getPhpStormMeta() as $extensionNameFull => $phpStormMeta) {
+      $extensionNameFullLower = mb_strtolower($extensionNameFull);
+      $this->addPhpStormMetaToRenderer($phpStormMeta);
+      $this->assets['phpStormMetaFiles'][".phpstorm.meta.php/$extensionNameFullLower.php"] = $this->phpStormMetaRenderer->render();
     }
-    else {
-      foreach ($this->getPhpStormMeta() as $extensionNameFull => $phpStormMeta) {
-        $this->addPhpStormMetaToRenderer($phpStormMeta);
-      }
-      $this->assets['phpStormMetaFiles']['.phpstorm.meta.php'] = $this->phpStormMetaRenderer->render();
+
+    return $this;
+  }
+
+  /**
+   * @return $this
+   */
+  protected function runActionSingleFile() {
+    foreach ($this->getPhpStormMeta() as $phpStormMeta) {
+      $this->addPhpStormMetaToRenderer($phpStormMeta);
     }
+    $this->assets['phpStormMetaFiles']['.phpstorm.meta.php'] = $this->phpStormMetaRenderer->render();
 
     return $this;
   }

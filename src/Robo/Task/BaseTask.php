@@ -2,6 +2,7 @@
 
 namespace Drupal\ide_helper\Robo\Task;
 
+use Drupal\ide_helper\Utils;
 use Robo\Contract\InflectionInterface;
 use Robo\Result;
 use Robo\Task\BaseTask as RoboBaseTask;
@@ -116,21 +117,12 @@ abstract class BaseTask extends RoboBaseTask implements
 
   protected function runReturn(): Result {
     $assetNamePrefix = $this->getAssetNamePrefix();
-    if ($assetNamePrefix === '') {
-      $data = $this->assets;
-    }
-    else {
-      $data = [];
-      foreach ($this->assets as $key => $value) {
-        $data["{$assetNamePrefix}{$key}"] = $value;
-      }
-    }
 
     return new Result(
       $this,
       $this->getTaskExitCode(),
       $this->getTaskExitMessage(),
-      $data
+      ($assetNamePrefix ? Utils::prefixArrayKeys($assetNamePrefix, $this->assets) : $this->assets)
     );
   }
 

@@ -2,7 +2,7 @@
 
 namespace Drupal\ide_helper\Tests\Unit\Handlers;
 
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Component\Serialization\Yaml as YamlDrupal;
 use Drupal\Core\Entity\ContentEntityType;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\Extension;
@@ -13,12 +13,15 @@ use Drupal\field\FieldStorageConfigStorage;
 use Drupal\ide_helper\Handlers\PhpStormMetaCollector;
 use Drupal\ide_helper\Tests\Unit\IdeHelperTestBase;
 use org\bovigo\vfs\vfsStream;
+use Symfony\Component\Yaml\Yaml as YamlSymfony;
 use Webmozart\PathUtil\Path;
 
 /**
  * @covers \Drupal\ide_helper\Handlers\PhpStormMetaCollector
  *
  * @group IdeHelperUnit
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class PhpStormMetaCollectorTest extends IdeHelperTestBase {
 
@@ -33,9 +36,10 @@ class PhpStormMetaCollectorTest extends IdeHelperTestBase {
     $this->ideHelperDir = Path::join(__DIR__, '..', '..', '..', '..');
   }
 
+  /**
+   * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+   */
   public function testCollect(): void {
-    $yaml = new Yaml();
-
     $extensionsInfo = [
       'my_empty' => [
         'my_empty.info.yml' => [
@@ -75,7 +79,7 @@ class PhpStormMetaCollectorTest extends IdeHelperTestBase {
     $vfsRoot = $this->vfsRootDirFromMethod(__METHOD__);
     $vfsDirStructure = [
       'core' => [
-        'core.services.yml' => $yaml->encode([
+        'core.services.yml' => YamlSymfony::dump([
           'services' => [
             'form_error_handler' => [
               'class' => 'Drupal\Core\Form\FormErrorHandler',
@@ -88,97 +92,18 @@ class PhpStormMetaCollectorTest extends IdeHelperTestBase {
     $vfs = vfsStream::setup($vfsRoot, NULL, $vfsDirStructure);
     $appRoot = $vfs->url();
 
-    /** @var \Drupal\Core\Extension\Extension[] $moduleList */
-    $moduleList = [];
-    foreach ($extensionsInfo as $extensionName => $extensionFiles) {
-      $moduleList[$extensionName] = new Extension(
-        $appRoot,
-        $extensionFiles["$extensionName.info.yml"]['type'],
-        "modules/custom/$extensionName/$extensionName.info.yml",
-        "$extensionName." . $extensionFiles["$extensionName.info.yml"]['type']
-      );
-
-      $extensionDir = Path::join($appRoot, $moduleList[$extensionName]->getPath());
-      foreach ($extensionFiles as $extensionFileName => $extensionFileContent) {
-        $fileNameFull = Path::join($extensionDir, $extensionFileName);
-        $fileDir = Path::getDirectory($fileNameFull);
-        if (!file_exists($fileDir)) {
-          mkdir($fileDir, 0777, TRUE);
-        }
-
-        file_put_contents(
-          Path::join($extensionDir, $extensionFileName),
-          $yaml->encode($extensionFileContent)
-        );
-      }
-    }
+    $moduleList = $this->createExtensions($appRoot, $extensionsInfo);
 
     $entityTypeDefinitions = [
       'node' => new ContentEntityType($this->getEntityTypeDefinitionNode()),
     ];
 
     $fieldStorageConfigs = [
-      'node.field_tags' => new FieldStorageConfig([
-        'id' => 'node.field_tags',
-        'field_name' => 'field_tags',
-        'entity_type' => 'node',
-        'type' => 'entity_reference',
-        'module' => 'core',
-        'settings' => [
-          'target_type' => 'taxonomy_term',
-        ],
-        'cardinality' => -1,
-        'translatable' => TRUE,
-        'locked' => FALSE,
-        'persist_with_no_fields' => FALSE,
-        'custom_storage' => FALSE,
-        'indexes' => [],
-        'deleted' => FALSE,
-        'schema' => NULL,
-        'propertyDefinitions' => NULL,
-        'originalId' => 'node.field_tags',
-        'status' => TRUE,
-        'uuid' => '40dadee1-c4cd-4591-82af-ecda5d033fca',
-        'isSyncing' => FALSE,
-        'isUninstalling' => FALSE,
-        'langcode' => 'en',
-        'third_party_settings' => [],
-        '_core' => [
-          'default_config_hash' => 'WpOE_bs8Bs_HY2ns7n2r__de-xno0-Bxkqep5-MsHAs',
-        ],
-        'trustedData' => FALSE,
-        'entityTypeId' => 'field_storage_config',
-        'enforceIsNew' => NULL,
-        'typedData' => NULL,
-        'cacheContexts' => [],
-        'cacheTags' => [],
-        'cacheMaxAge' => -1,
-        '_serviceIds' => [],
-        'dependencies' => [
-          'module' => [
-            'node',
-            'taxonomy',
-          ],
-        ],
-      ]),
+      'node.field_tags' => new FieldStorageConfig($this->getFieldStorageConfigDefinitionEntityReference('field_tags')),
     ];
 
     $fieldTypeDefinitions = [
-      'entity_reference' => [
-        'category' => 'Reference',
-        'no_ui' => FALSE,
-        'definition_class' => '\Drupal\Core\TypedData\DataDefinition',
-        'list_definition_class' => '\Drupal\Core\TypedData\ListDataDefinition',
-        'unwrap_for_canonical_representation' => TRUE,
-        'id' => 'entity_reference',
-        'label' => 'Entity reference',
-        'description' => 'An entity field containing an entity reference.',
-        'default_widget' => 'entity_reference_autocomplete',
-        'default_formatter' => 'entity_reference_label',
-        'list_class' => '\Drupal\Core\Field\EntityReferenceFieldItemList',
-        'class' => '\Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem',
-        'provider' => 'core',
-      ],
+      'entity_reference' => $this->getFieldTypeDefinitionEntityReference(),
     ];
 
     $moduleHandler = $this->createMock(ModuleHandlerInterface::class);
@@ -214,7 +139,7 @@ class PhpStormMetaCollectorTest extends IdeHelperTestBase {
       $entityTypeManager,
       $fieldStorageConfigStorage,
       $fieldTypePluginManager,
-      $yaml
+      new YamlDrupal()
     );
 
     $collector->setDrupalRoot($appRoot);
@@ -317,6 +242,38 @@ class PhpStormMetaCollectorTest extends IdeHelperTestBase {
     $this->assertEquals($expected, $collector->collect());
   }
 
+  /**
+   * @return \Drupal\Core\Extension\Extension[]
+   */
+  protected function createExtensions(string $appRoot, array $extensionsInfo): array {
+    /** @var \Drupal\Core\Extension\Extension[] $moduleList */
+    $moduleList = [];
+    foreach ($extensionsInfo as $extensionName => $extensionFiles) {
+      $moduleList[$extensionName] = new Extension(
+        $appRoot,
+        $extensionFiles["$extensionName.info.yml"]['type'],
+        "modules/custom/$extensionName/$extensionName.info.yml",
+        "$extensionName." . $extensionFiles["$extensionName.info.yml"]['type']
+      );
+
+      $extensionDir = Path::join($appRoot, $moduleList[$extensionName]->getPath());
+      foreach ($extensionFiles as $extensionFileName => $extensionFileContent) {
+        $fileNameFull = Path::join($extensionDir, $extensionFileName);
+        $fileDir = Path::getDirectory($fileNameFull);
+        if (!file_exists($fileDir)) {
+          mkdir($fileDir, 0777, TRUE);
+        }
+
+        file_put_contents(
+          Path::join($extensionDir, $extensionFileName),
+          YamlSymfony::dump($extensionFileContent)
+        );
+      }
+    }
+
+    return $moduleList;
+  }
+
   protected function getEntityTypeDefinitionNode(): array {
     return [
       'revision_metadata_keys' => [
@@ -325,9 +282,6 @@ class PhpStormMetaCollectorTest extends IdeHelperTestBase {
         'revision_log_message' => 'revision_log',
         'revision_default' => 'revision_default',
       ],
-      'static_cache' => TRUE,
-      'render_cache' => TRUE,
-      'persistent_cache' => TRUE,
       'entity_keys' => [
         'id' => 'nid',
         'revision' => 'vid',
@@ -364,23 +318,6 @@ class PhpStormMetaCollectorTest extends IdeHelperTestBase {
         'list_builder' => 'Drupal\node\NodeListBuilder',
         'translation' => 'Drupal\node\NodeTranslationHandler',
       ],
-      'admin_permission' => NULL,
-      'permission_granularity' => 'bundle',
-      'links' => [
-        'canonical' => '/node/{node}',
-        'delete-form' => '/node/{node}/delete',
-        'delete-multiple-form' => '/admin/content/node/delete',
-        'edit-form' => '/node/{node}/edit',
-        'version-history' => '/node/{node}/revisions',
-        'revision' => '/node/{node}/revisions/{node_revision}/view',
-        'create' => '/node',
-        'devel-render' => '/devel/node/{node}/render',
-        'devel-load' => '/devel/node/{node}',
-        'drupal:content-translation-overview' => '/node/{node}/translations',
-        'drupal:content-translation-add' => '/node/{node}/translations/add/{source}/{target}',
-        'drupal:content-translation-edit' => '/node/{node}/translations/edit/{language}',
-        'drupal:content-translation-delete' => '/node/{node}/translations/delete/{language}',
-      ],
       'label_callback' => NULL,
       'bundle_entity_type' => 'node_type',
       'bundle_of' => NULL,
@@ -389,8 +326,6 @@ class PhpStormMetaCollectorTest extends IdeHelperTestBase {
       'revision_data_table' => 'node_field_revision',
       'revision_table' => 'node_revision',
       'data_table' => 'node_field_data',
-      'translatable' => TRUE,
-      'show_revision_ui' => TRUE,
       'label' => 'Content',
       'label_collection' => 'Content',
       'label_singular' => 'content item',
@@ -427,6 +362,73 @@ class PhpStormMetaCollectorTest extends IdeHelperTestBase {
       'class' => 'Drupal\node\Entity\Node',
       'provider' => 'node',
       'stringTranslation' => NULL,
+    ];
+  }
+
+  protected function getFieldTypeDefinitionEntityReference(): array {
+    return [
+      'category' => 'Reference',
+      'no_ui' => FALSE,
+      'definition_class' => '\Drupal\Core\TypedData\DataDefinition',
+      'list_definition_class' => '\Drupal\Core\TypedData\ListDataDefinition',
+      'unwrap_for_canonical_representation' => TRUE,
+      'id' => 'entity_reference',
+      'label' => 'Entity reference',
+      'description' => 'An entity field containing an entity reference.',
+      'default_widget' => 'entity_reference_autocomplete',
+      'default_formatter' => 'entity_reference_label',
+      'list_class' => '\Drupal\Core\Field\EntityReferenceFieldItemList',
+      'class' => '\Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem',
+      'provider' => 'core',
+    ];
+  }
+
+  protected function getFieldStorageConfigDefinitionEntityReference(string $fieldName): array {
+    $entityType = 'node';
+    $targetType = 'taxonomy_term';
+
+    return [
+      'id' => "node.$fieldName",
+      'field_name' => $fieldName,
+      'entity_type' => $entityType,
+      'type' => 'entity_reference',
+      'module' => 'core',
+      'settings' => [
+        'target_type' => $targetType,
+      ],
+      'cardinality' => -1,
+      'translatable' => TRUE,
+      'locked' => FALSE,
+      'persist_with_no_fields' => FALSE,
+      'custom_storage' => FALSE,
+      'indexes' => [],
+      'deleted' => FALSE,
+      'schema' => NULL,
+      'propertyDefinitions' => NULL,
+      'originalId' => "node.$fieldName",
+      'status' => TRUE,
+      'uuid' => '40dadee1-c4cd-4591-82af-ecda5d033fca',
+      'isSyncing' => FALSE,
+      'isUninstalling' => FALSE,
+      'langcode' => 'en',
+      'third_party_settings' => [],
+      '_core' => [
+        'default_config_hash' => 'WpOE_bs8Bs_HY2ns7n2r__de-xno0-Bxkqep5-MsHAs',
+      ],
+      'trustedData' => FALSE,
+      'entityTypeId' => 'field_storage_config',
+      'enforceIsNew' => NULL,
+      'typedData' => NULL,
+      'cacheContexts' => [],
+      'cacheTags' => [],
+      'cacheMaxAge' => -1,
+      '_serviceIds' => [],
+      'dependencies' => [
+        'module' => [
+          'node',
+          'taxonomy',
+        ],
+      ],
     ];
   }
 
