@@ -16,7 +16,7 @@ files from a running Drupal site.
 
 ## Usage
 
-`drush ide-helper:phpstorm-meta`
+`vendor/bin/drush --include="$PWD/drush/contrib/ide_helper" ide-helper:phpstorm-meta`
 
 
 ## Screenshots
