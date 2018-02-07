@@ -113,7 +113,7 @@ class PhpStormMetaCommands extends Tasks {
     $drupalContainer = \Drupal::getContainer();
 
     $collectorTask = $this->taskIdeHelperPhpstormMetaCollector();
-    $collectorTask->setDrupalRoot(DRUPAL_ROOT);
+    $collectorTask->setDrupalRoot($this->input()->getOption('root'));
     $collectorTask->setContainer($drupalContainer);
 
     $rendererTask = $this->taskIdeHelperPhpstormMetaRenderer();
