@@ -1,3 +1,4 @@
+Commands/
 src/
-src-dev/Composer/
-src-dev/Tests/
+tests/src/
+RoboFile.php

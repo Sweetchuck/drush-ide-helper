@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\ide_helper\Robo\Task;
 
 use Drupal\ide_helper\Utils;
@@ -18,25 +20,13 @@ abstract class BaseTask extends RoboBaseTask implements
   use ContainerAwareTrait;
   use TaskAccessor;
 
-  /**
-   * @var string
-   */
-  protected $taskName = '';
+  protected string $taskName = '';
 
-  /**
-   * @var array
-   */
-  protected $assets = [];
+  protected array $assets = [];
 
-  /**
-   * @var string
-   */
-  protected $action = '';
+  protected string $action = '';
 
-  /**
-   * @var string
-   */
-  protected $assetNamePrefix = '';
+  protected string $assetNamePrefix = '';
 
   public function getAssetNamePrefix(): string {
     return $this->assetNamePrefix;

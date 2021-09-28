@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\ide_helper\Handlers;
 
 use Drupal\Component\Serialization\SerializationInterface;
@@ -17,55 +19,25 @@ use Webmozart\PathUtil\Path;
 
 class PhpStormMetaCollector implements ContainerInjectionInterface {
 
-  /**
-   * @var array
-   */
-  protected $extensions = [];
+  protected array $extensions = [];
 
-  /**
-   * @var array
-   */
-  protected $phpStormMeta = [];
+  protected array $phpStormMeta = [];
 
-  /**
-   * @var array
-   */
-  protected $allServices = [];
+  protected array $allServices = [];
 
-  /**
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface
-   */
-  protected $moduleHandler;
+  protected ModuleHandlerInterface $moduleHandler;
 
-  /**
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
+  protected EntityTypeManagerInterface $entityTypeManager;
 
-  /**
-   * @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface
-   */
-  protected $fieldStorageConfigStorage;
+  protected ConfigEntityStorageInterface $fieldStorageConfigStorage;
 
-  /**
-   * @var \Drupal\Core\Field\FieldTypePluginManagerInterface
-   */
-  protected $fieldTypePluginManager;
+  protected FieldTypePluginManagerInterface $fieldTypePluginManager;
 
-  /**
-   * @var \Drupal\Component\Serialization\SerializationInterface
-   */
-  protected $yaml;
+  protected SerializationInterface $yaml;
 
-  /**
-   * @var string
-   */
-  protected $drupalRoot = '';
+  protected string $drupalRoot = '';
 
-  /**
-   * @var string
-   */
-  protected $packageNamePrefix = 'drupal';
+  protected string $packageNamePrefix = 'drupal';
 
   public function getDrupalRoot(): string {
     return $this->drupalRoot;
@@ -100,7 +72,7 @@ class PhpStormMetaCollector implements ContainerInjectionInterface {
       $entityTypeManager,
       $entityTypeManager->getStorage('field_storage_config'),
       $container->get('plugin.manager.field.field_type'),
-      $container->get('serialization.yaml')
+      $container->get('serialization.yaml'),
     );
   }
 
@@ -137,6 +109,9 @@ class PhpStormMetaCollector implements ContainerInjectionInterface {
     return $this;
   }
 
+  /**
+   * @return $this
+   */
   protected function initExtensions() {
     return $this
       ->initExtensionsEntityTypes()
@@ -273,7 +248,7 @@ class PhpStormMetaCollector implements ContainerInjectionInterface {
           $handler['method'],
           [
             $entityType->id() => $handlerInterface ?: $handlerClass,
-          ]
+          ],
         );
       }
     }
@@ -299,7 +274,7 @@ class PhpStormMetaCollector implements ContainerInjectionInterface {
           'get(0)',
           [
             $serviceName => Utils::getServiceHandlerInterface($serviceClass, $serviceClassName) ?: $serviceClass,
-          ]
+          ],
         );
 
         $this->addOverride(
@@ -308,7 +283,7 @@ class PhpStormMetaCollector implements ContainerInjectionInterface {
           'service(0)',
           [
             $serviceName => Utils::getServiceHandlerInterface($serviceClass, $serviceClassName) ?: $serviceClass,
-          ]
+          ],
         );
       }
     }
@@ -331,7 +306,7 @@ class PhpStormMetaCollector implements ContainerInjectionInterface {
         'fromRoute(0)',
         [
           $routeName => Url::class,
-        ]
+        ],
       );
 
       $this->addOverride(
@@ -340,7 +315,7 @@ class PhpStormMetaCollector implements ContainerInjectionInterface {
         'createFromRoute(1)',
         [
           $routeName => Link::class,
-        ]
+        ],
       );
     }
 
@@ -378,7 +353,7 @@ class PhpStormMetaCollector implements ContainerInjectionInterface {
         'get(0)',
         [
           $fieldName => $fieldItemListInterface,
-        ]
+        ],
       );
     }
 

@@ -1,0 +1,6 @@
+services:
+  ide_helper.phpstorm_meta.commands:
+    class: 'Drush\Commands\ide_helper\PhpStormMetaCommands'
+    tags:
+      -
+        name: 'drush.command'

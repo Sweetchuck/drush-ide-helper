@@ -1,15 +1,14 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\ide_helper\Robo\Task;
 
 use Drupal\ide_helper\Handlers\PhpStormMetaCollector;
 
 class PhpstormMetaCollectorTask extends BaseTask {
 
-  /**
-   * @var string
-   */
-  protected $drupalRoot = '';
+  protected string $drupalRoot = '';
 
   public function getDrupalRoot(): string {
     return $this->drupalRoot;

@@ -1,6 +1,8 @@
 <?php
 
-use League\Container\ContainerInterface;
+declare(strict_types = 1);
+
+use League\Container\ContainerInterface as LeagueContainer;
 use Robo\Contract\TaskInterface;
 use Robo\Tasks;
 use Robo\Collection\CollectionBuilder;
@@ -19,49 +21,29 @@ class RoboFile extends Tasks {
   use PhpcsTaskLoader;
   use PhpmdTaskLoader;
 
-  /**
-   * @var array
-   */
-  protected $composerInfo = [];
+  protected array $composerInfo = [];
 
-  /**
-   * @var string
-   */
-  protected $packageVendor = '';
+  protected string $packageVendor = '';
 
-  /**
-   * @var string
-   */
-  protected $packageName = '';
+  protected string $packageName = '';
 
-  /**
-   * @var string
-   */
-  protected $binDir = 'vendor/bin';
+  protected string $binDir = 'vendor/bin';
 
-  /**
-   * @var string
-   */
-  protected $gitHook = '';
+  protected string $gitHook = '';
 
-  /**
-   * @var string
-   */
-  protected $envVarNamePrefix = '';
+  protected string $envVarNamePrefix = '';
 
   /**
    * Allowed values: dev, ci, prod.
-   *
-   * @var string
    */
-  protected $environmentType = '';
+  protected string $environmentType = '';
 
   /**
    * Allowed values: local, jenkins, travis, circleci.
-   *
-   * @var string
    */
-  protected $environmentName = '';
+  protected string $environmentName = '';
+
+  protected string $logDir = './reports';
 
   /**
    * RoboFile constructor.
@@ -75,22 +57,30 @@ class RoboFile extends Tasks {
   }
 
   /**
-   * {@inheritdoc}
+   * @hook pre-command @initLintReporters
    */
-  public function setContainer(ContainerInterface $container) {
-    if (!$container->has('lintCheckstyleReporter')) {
-      BaseReporter::lintReportConfigureContainer($container);
-    }
+  public function initLintReporters() {
+    $lintServices = BaseReporter::getServices();
+    $container = $this->getContainer();
+    foreach ($lintServices as $name => $class) {
+      if ($container->has($name)) {
+        continue;
+      }
 
-    return parent::setContainer($container);
+      if ($container instanceof LeagueContainer) {
+        $container->share($name, $class);
+      }
+    }
   }
 
   /**
-   * Git "pre-commit" hook callback.
+   * Run code style checkers.
+   *
+   * @command lint
+   *
+   * @initLintReporters
    */
-  public function githookPreCommit(): CollectionBuilder {
-    $this->gitHook = 'pre-commit';
-
+  public function lint(): TaskInterface {
     return $this
       ->collectionBuilder()
       ->addTask($this->taskComposerValidate())
@@ -98,45 +88,66 @@ class RoboFile extends Tasks {
   }
 
   /**
-   * Run code style checkers.
+   * @command lint:phpcs
+   *
+   * @initLintReporters
    */
-  public function lint(): CollectionBuilder {
+  public function lintPhpcs(): TaskInterface {
+    return $this->getTaskPhpcsLint();
+  }
+
+  /**
+   * @command lint:phpmd
+   *
+   * @initLintReporters
+   */
+  public function lintPhpmd(): TaskInterface {
+    return $this->getTaskPhpmdLint();
+  }
+
+  /**
+   * Run all kind of tests.
+   *
+   * @command test
+   */
+  public function test(string $testsuite = ''): CollectionBuilder {
+    return $this->getTaskPhpunitRun($testsuite);
+  }
+
+  /**
+   * Run PHPUnit tests.
+   *
+   * @command test:phpunit
+   */
+  public function testPhpunit(string $suite = 'all'): CollectionBuilder {
+    return $this->getTaskPhpunitRun($suite);
+  }
+
+  /**
+   * Git "pre-commit" hook callback.
+   *
+   * @command githook:pre-commit
+   *
+   * @hidden
+   *
+   * @initLintReporters
+   */
+  public function githookPreCommit(): CollectionBuilder {
+    $this->gitHook = 'pre-commit';
+
     return $this
       ->collectionBuilder()
       ->addTask($this->taskComposerValidate())
       ->addTask($this->getTaskPhpcsLint())
-      ->addTask($this->getTaskPhpmdLint());
-  }
-
-  public function lintPhpcs(): CollectionBuilder {
-    return $this->getTaskPhpcsLint();
-  }
-
-  public function lintPhpmd(): CollectionBuilder {
-    return $this->getTaskPhpmdLint();
-  }
-
-  protected function errorOutput(): ?OutputInterface {
-    $output = $this->output();
-
-    return ($output instanceof ConsoleOutputInterface) ? $output->getErrorOutput() : $output;
-  }
-
-  /**
-   * @return $this
-   */
-  protected function initEnvVarNamePrefix() {
-    $this->envVarNamePrefix = strtoupper(str_replace('-', '_', $this->packageName));
-
-    return $this;
+      ->addTask($this->getTaskPhpunitRun('Unit'));
   }
 
   /**
    * @return $this
    */
   protected function initEnvironmentTypeAndName() {
-    $this->environmentType = getenv($this->getEnvVarName('environment_type'));
-    $this->environmentName = getenv($this->getEnvVarName('environment_name'));
+    $this->environmentType = (string) getenv($this->getEnvVarName('environment_type'));
+    $this->environmentName = (string) getenv($this->getEnvVarName('environment_name'));
 
     if (!$this->environmentType) {
       if (getenv('CI') === 'true') {
@@ -178,12 +189,15 @@ class RoboFile extends Tasks {
     return "{$this->envVarNamePrefix}_" . strtoupper($name);
   }
 
-  protected function getPhpExecutable(): string {
-    return getenv($this->getEnvVarName('php_executable')) ?: PHP_BINARY;
-  }
+  /**
+   * @return $this
+   */
+  protected function initEnvVarNamePrefix() {
+    $this->envVarNamePrefix = strtoupper(
+      str_replace('-', '_', $this->packageName)
+    );
 
-  protected function getPhpdbgExecutable(): string {
-    return getenv($this->getEnvVarName('phpdbg_executable')) ?: Path::join(PHP_BINDIR, 'phpdbg');
+    return $this;
   }
 
   /**
@@ -195,7 +209,10 @@ class RoboFile extends Tasks {
     }
 
     $this->composerInfo = json_decode(file_get_contents('composer.json'), TRUE);
-    list($this->packageVendor, $this->packageName) = explode('/', $this->composerInfo['name']);
+    [$this->packageVendor, $this->packageName] = explode(
+      '/',
+      $this->composerInfo['name'],
+    );
 
     if (!empty($this->composerInfo['config']['bin-dir'])) {
       $this->binDir = $this->composerInfo['config']['bin-dir'];
@@ -204,7 +221,7 @@ class RoboFile extends Tasks {
     return $this;
   }
 
-  protected function getTaskPhpcsLint(): CollectionBuilder {
+  protected function getTaskPhpcsLint(): TaskInterface {
     $options = [
       'failOn' => 'warning',
       'lintReporters' => [
@@ -217,27 +234,76 @@ class RoboFile extends Tasks {
       $options['lintReporters']['lintCheckstyleReporter'] = $this
         ->getContainer()
         ->get('lintCheckstyleReporter')
-        ->setDestination('tests/_output/machine/checkstyle/phpcs.psr2.xml');
+        ->setDestination("{$this->logDir}/machine/checkstyle/phpcs.drupal.xml");
     }
 
     if ($this->gitHook === 'pre-commit') {
       return $this
         ->collectionBuilder()
-        ->addTask($this
-          ->taskPhpcsParseXml()
-          ->setAssetNamePrefix('phpcsXml.'))
-        ->addTask($this
-          ->taskGitReadStagedFiles()
-          ->setCommandOnly(TRUE)
-          ->setWorkingDirectory('.')
-          ->deferTaskConfiguration('setPaths', 'phpcsXml.files'))
-        ->addTask($this
-          ->taskPhpcsLintInput($options)
-          ->deferTaskConfiguration('setFiles', 'files')
-          ->deferTaskConfiguration('setIgnore', 'phpcsXml.exclude-patterns'));
+        ->addTask(
+          $this
+            ->taskPhpcsParseXml()
+            ->setAssetNamePrefix('phpcsXml.')
+        )
+        ->addTask(
+          $this
+            ->taskGitReadStagedFiles()
+            ->setCommandOnly(TRUE)
+            ->setWorkingDirectory('.')
+            ->deferTaskConfiguration('setPaths', 'phpcsXml.files')
+        )
+        ->addTask(
+          $this
+            ->taskPhpcsLintInput($options)
+            ->deferTaskConfiguration('setFiles', 'files')
+            ->deferTaskConfiguration('setIgnore', 'phpcsXml.exclude-patterns')
+        );
     }
 
     return $this->taskPhpcsLintFiles($options);
+  }
+
+  protected function getTaskPhpunitRun(string $suite = 'all'): CollectionBuilder {
+    if ($suite === '') {
+      $suite = 'all';
+    }
+
+    $cmdArgs = [];
+
+    $cmdPattern = '%s';
+    $cmdArgs[] = escapeshellcmd($this->getPhpExecutable());
+
+    $cmdPattern .= ' %s';
+    $cmdArgs[] = escapeshellcmd("{$this->binDir}/phpunit");
+
+    $cmdPattern .= ' --verbose';
+
+    if ($suite !== 'all') {
+      $cmdPattern .= ' --testsuite %s';
+      $cmdArgs[] = escapeshellarg($suite);
+
+      $cmdPattern .= ' --coverage-html=%s';
+      $cmdArgs[] = escapeshellarg("{$this->logDir}/human/coverage/$suite/html");
+
+      $cmdPattern .= ' --coverage-clover=%s';
+      $cmdArgs[] = escapeshellarg("{$this->logDir}/machine/coverage/$suite/clover.xml");
+
+      $cmdPattern .= ' --coverage-xml=%s';
+      $cmdArgs[] = escapeshellarg("{$this->logDir}/machine/coverage/$suite/xml");
+
+      $cmdPattern .= ' --coverage-php=%s';
+      $cmdArgs[] = escapeshellarg("{$this->logDir}/machine/coverage-php/$suite.php");
+
+      $cmdPattern .= ' --testdox-html=%s';
+      $cmdArgs[] = escapeshellarg("{$this->logDir}/human/unit/junit.$suite.html");
+
+      $cmdPattern .= ' --log-junit=%s';
+      $cmdArgs[] = escapeshellarg("{$this->logDir}/machine/unit/junit.$suite.xml");
+    }
+
+    return $this
+      ->collectionBuilder()
+      ->addTask($this->taskExec(vsprintf($cmdPattern, $cmdArgs)));
   }
 
   protected function getTaskPhpmdLint(): TaskInterface {
@@ -257,22 +323,25 @@ class RoboFile extends Tasks {
     return $task;
   }
 
-  protected function isPhpExtensionAvailable(string $extension): bool {
-    $command = sprintf('%s -m', escapeshellcmd($this->getPhpExecutable()));
+  protected function getPhpExecutable(): string {
+    return getenv($this->getEnvVarName('php_executable')) ?: PHP_BINARY;
+  }
 
-    $process = new Process($command);
-    $exitCode = $process->run();
-    if ($exitCode !== 0) {
-      throw new \RuntimeException('@todo');
-    }
-
-    return in_array($extension, explode("\n", $process->getOutput()));
+  protected function getPhpdbgExecutable(): string {
+    return getenv($this->getEnvVarName('phpdbg_executable')) ?: Path::join(PHP_BINDIR, 'phpdbg');
   }
 
   protected function isPhpDbgAvailable(): bool {
-    $command = sprintf('%s -qrr', escapeshellcmd($this->getPhpdbgExecutable()));
+    $command = [$this->getPhpdbgExecutable(), '-qrr'];
 
     return (new Process($command))->run() === 0;
+  }
+
+  protected function errorOutput(): ?OutputInterface {
+    $output = $this->output();
+
+    return ($output instanceof ConsoleOutputInterface)
+      ? $output->getErrorOutput() : $output;
   }
 
 }

@@ -1,71 +1,244 @@
 {
     "name": "drupal/ide_helper",
     "description": "IDE helper",
-    "license": "GPL-3.0-or-later",
     "type": "drupal-drush",
+    "license": "GPL-3.0-or-later",
     "keywords": [
         "drupal",
         "drush",
         "phpstorm"
     ],
-    "config": {
-        "bin-dir": "bin",
-        "sort-packages": true,
-        "optimize-autoloader": true
+    "authors": [
+        {
+            "name": "Andor",
+            "role": "Maintainer",
+            "homepage": "https://github.com/Sweetchuck"
+        }
+    ],
+    "homepage": "https://github.com/Sweetchuck/drush-ide-helper",
+    "support": {
+        "source": "https://github.com/Sweetchuck/drush-ide-helper",
+        "issues": "https://github.com/Sweetchuck/drush-ide-helper/issues"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
-    "repositories": {
-        "drupal-8": {
-            "type": "composer",
-            "url": "https://packages.drupal.org/8"
-        }
+    "config": {
+        "bin-dir": "bin",
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
     },
+    "repositories": {},
     "require": {
-        "php": ">=7.1",
-        "ext-mbstring": "*",
-        "drupal/core": "^8.4",
-        "drush/drush": "9.0.x-dev"
+        "php": ">=7.4",
+        "ext-mbstring": "*"
     },
     "require-dev": {
-        "consolidation/robo": "^1.1",
+        "ext-json": "*",
+        "ext-pdo": "*",
+        "ext-pdo_sqlite": "*",
+        "consolidation/robo": "^2.2",
+        "cweagans/composer-patches": "^1.6",
         "danielstjules/stringy": "^3.1",
-        "drupal/coder": "^8.2",
-        "mikey179/vfsStream": "^1.6",
-        "phpunit/phpunit": "^5.7",
-        "sweetchuck/git-hooks": "^0.0",
-        "sweetchuck/robo-git": "^0.0",
-        "sweetchuck/robo-phpcs": "^0.0",
-        "sweetchuck/robo-phpmd": "^0.0.1",
-        "symfony/finder": "^3.3",
-        "webmozart/path-util": "^2.3"
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
+        "drupal/coder": "^8.3",
+        "drupal/core-composer-scaffold": "^9.2",
+        "drupal/core-recommended": "^9.2",
+        "drush/drush": "^10.6",
+        "mikey179/vfsstream": "^1.6",
+        "oomphinc/composer-installers-extender": "^2.0",
+        "phpmd/phpmd": "^2.10",
+        "phpspec/prophecy-phpunit": "^2.0",
+        "phpunit/phpunit": "^9.0",
+        "squizlabs/php_codesniffer": "^3.6",
+        "sweetchuck/composer-suite": "^1.2",
+        "sweetchuck/git-hooks": "^2.x-dev",
+        "sweetchuck/robo-git": "^1.x-dev",
+        "sweetchuck/robo-phpcs": "^1.x-dev",
+        "sweetchuck/robo-phpmd": "^1.x-dev",
+        "sweetchuck/utils": "^1.x-dev",
+        "symfony/finder": "^5.3",
+        "symfony/phpunit-bridge": "^5.3",
+        "webmozart/path-util": "^2.3",
+        "weitzman/drupal-test-traits": "^1.1"
+    },
+    "suggest": {
+        "drush/drush": "^10.0 - This project provides only Drush commands."
     },
     "autoload": {
         "psr-4":    {
             "Drupal\\ide_helper\\": "src/",
-            "Drush\\Commands\\ide_helper\\": "src/Commands/ide_helper/"
+            "Drush\\Commands\\ide_helper\\": "Commands/ide_helper/"
         }
     },
     "autoload-dev": {
-        "psr-0": {
-            "Unish": "vendor/drush/drush/tests/"
-        },
         "psr-4": {
-            "Drupal\\Tests\\": "vendor/drupal/core/tests",
-            "Drupal\\field\\": "vendor/drupal/core/modules/field/src",
-            "Drupal\\node\\": "vendor/drupal/core/modules/node/src",
-            "Drupal\\user\\": "vendor/drupal/core/modules/user/src",
-            "Drupal\\ide_helper\\Composer\\": "src-dev/Composer/",
-            "Drupal\\ide_helper\\Tests\\": "src-dev/Tests/"
+            "Drupal\\Tests\\ide_helper\\": "tests/src/",
+
+            "Drupal\\Tests\\": "tests/fixtures/project_01/docroot/core/tests/Drupal/Tests/",
+            "Drupal\\TestTools\\": "tests/fixtures/project_01/docroot/core/tests/Drupal/TestTools/",
+            "Drupal\\KernelTests\\": "tests/fixtures/project_01/docroot/core/tests/Drupal/KernelTests"
         }
     },
     "extra": {
-        "branch-alias": {
-            "dev-9.x-1.x": "1.0.x-dev"
+        "drush": {
+            "services": {
+                "drush.services.yml": "^9"
+            }
+        },
+        "enable-patching": true,
+        "composer-exit-on-patch-failure": true,
+        "patches": {
+            "drupal/core": {
+                "https://www.drupal.org/project/drupal/issues/3182103": "https://www.drupal.org/files/issues/2021-08-08/drupal-3182103-9-test-setup-teardown-compatibility.patch"
+            }
+        },
+        "installer-types": [
+            "bower-asset",
+            "npm-asset"
+        ],
+        "installer-paths": {
+            "tests/fixtures/project_01/docroot/core": [
+                "type:drupal-core"
+            ],
+            "tests/fixtures/project_01/docroot/libraries/{$name}": [
+                "type:bower-asset",
+                "type:npm-asset",
+                "type:drupal-library"
+            ],
+            "tests/fixtures/project_01/docroot/modules/contrib/{$name}": [
+                "type:drupal-module"
+            ],
+            "tests/fixtures/project_01/docroot/profiles/contrib/{$name}": [
+                "type:drupal-profile"
+            ],
+            "tests/fixtures/project_01/docroot/themes/contrib/{$name}": [
+                "type:drupal-theme"
+            ],
+            "tests/fixtures/project_01/drush/Commands/contrib/{$name}": [
+                "type:drupal-drush"
+            ]
+        },
+        "drupal-scaffold": {
+            "locations": {
+                "web-root": "tests/fixtures/project_01/docroot"
+            },
+            "file-mapping": {
+                "[web-root]/modules/.gitignore": {
+                    "mode": "skip"
+                },
+                "[web-root]/modules/README.txt": {
+                    "mode": "skip"
+                },
+                "[web-root]/profiles/.gitignore": {
+                    "mode": "skip"
+                },
+                "[web-root]/profiles/README.txt": {
+                    "mode": "skip"
+                },
+                "[web-root]/themes/.gitignore": {
+                    "mode": "skip"
+                },
+                "[web-root]/themes/README.txt": {
+                    "mode": "skip"
+                },
+                "[web-root]/sites/example.settings.local.php": {
+                    "mode": "skip"
+                },
+                "[web-root]/sites/.gitignore": {
+                    "mode": "skip"
+                },
+                "[web-root]/sites/README.txt": {
+                    "mode": "skip"
+                },
+                "[web-root]/.csslintrc": {
+                    "mode": "skip"
+                },
+                "[web-root]/.editorconfig": {
+                    "mode": "skip"
+                },
+                "[web-root]/.eslintignore": {
+                    "mode": "skip"
+                },
+                "[web-root]/.eslintrc.json": {
+                    "mode": "skip"
+                },
+                "[web-root]/.gitattributes": {
+                    "mode": "skip"
+                },
+                "[web-root]/.gitignore": {
+                    "mode": "skip"
+                },
+                "[web-root]/example.gitignore": {
+                    "mode": "skip"
+                },
+                "[web-root]/INSTALL.txt": {
+                    "mode": "skip"
+                },
+                "[web-root]/README.txt": {
+                    "mode": "skip"
+                },
+                "[web-root]/.htaccess": {
+                    "mode": "skip"
+                },
+                "[web-root]/web.config": {
+                    "mode": "skip"
+                },
+                "[project-root]/.editorconfig": {
+                    "mode": "skip"
+                }
+            },
+            "initial": {
+                "sites/default/default.services.yml": "sites/default/services.yml",
+                "sites/default/default.settings.php": "sites/default/settings.php"
+            }
+        },
+        "composer-suite": {
+            "core-plus1": [
+                {
+                    "type": "replaceRecursive",
+                    "config": {
+                        "items": {
+                            "require-dev": {
+                                "drupal/core-composer-scaffold": "9.3.x-dev",
+                                "drupal/core-recommended": "9.3.x-dev"
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "unset",
+                    "config": {
+                        "parents": [
+                            "extra",
+                            "patches",
+                            "drupal/core",
+                            [
+                                "https://www.drupal.org/project/drupal/issues/3182103"
+                            ]
+                        ]
+                    }
+                }
+            ]
         }
     },
     "scripts": {
-        "post-install-cmd": "\\Drupal\\ide_helper\\Composer\\Scripts::postInstallCmd",
-        "post-update-cmd": "\\Drupal\\ide_helper\\Composer\\Scripts::postUpdateCmd"
+        "post-install-cmd": [
+            "\\Drupal\\Tests\\ide_helper\\Scripts::postInstallCmd"
+        ],
+        "post-update-cmd": [
+            "\\Drupal\\Tests\\ide_helper\\Scripts::postUpdateCmd"
+        ],
+        "clean": [
+            "@clean:reports",
+            "@clean:composer"
+        ],
+        "clean:reports": "[ ! -d ./reports ] || find ./reports -mindepth 1 -maxdepth 1 -exec rm -rf {} \\;",
+        "clean:composer": [
+            "rm -rf bin/ vendor/",
+            "[[ ! -d tests/fixtures/project_01/docroot/sites/default/ ]] || chmod --recursive u+w tests/fixtures/project_01/docroot/sites/default/",
+            "git clean --force -d -x -- tests/",
+            "git clean --force -d -X -- tests/"
+        ]
     }
 }

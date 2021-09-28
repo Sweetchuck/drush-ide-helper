@@ -1,0 +1,6 @@
+drush:
+  paths:
+    config:
+      - '${drush.vendor-dir}/../tests/fixtures/project_01/drush/Commands/custom/ide_helper/Commands/drush.yml'
+    include:
+      - '${drush.vendor-dir}/../tests/fixtures/project_01/drush/Commands/custom/ide_helper'

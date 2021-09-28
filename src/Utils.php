@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\ide_helper;
 
 use Webmozart\PathUtil\Path;
@@ -51,7 +53,7 @@ class Utils {
   }
 
   public static function suffixFqnWithClass(string $fqn): string {
-    return (preg_match('@(::class|\[\])$@', $fqn)) ? $fqn : "$fqn::class";
+    return (preg_match('@(::class|\[])$@', $fqn)) ? $fqn : "$fqn::class";
   }
 
   public static function overrideMapTypeHint(array $types): string {
@@ -59,7 +61,7 @@ class Utils {
     $numOfClasses = 0;
     foreach ($types as $type) {
       $isClass = static::isClass($type);
-      $isArray = preg_match('@\[\]$@', $type);
+      $isArray = preg_match('@\[]$@', $type);
       if ($isClass) {
         $type = Utils::prefixFqnWithBackslash($type);
       }
@@ -104,7 +106,10 @@ class Utils {
   }
 
   public static function getServiceHandlerInterface(string $fqn, string $base): string {
-    $implements = $fqn === 'SplString' ? ['string'] : class_implements($fqn);
+    $implements = in_array($fqn, ['\SplString', 'SplString'])
+      ? ['string']
+      : class_implements($fqn);
+
     $interfaces = static::prioritizeInterfaces($fqn, $base, $implements);
     $firstGroup = reset($interfaces);
 
@@ -118,6 +123,7 @@ class Utils {
     $priorities = [];
 
     $ignoredInterfaceNames = [
+      'Stringable',
       'ContainerAwareInterface',
     ];
 

@@ -1,20 +1,16 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\ide_helper\Handlers;
 
 use Drupal\ide_helper\Utils;
 
 class PhpStormMetaRenderer {
 
-  /**
-   * @var array
-   */
-  protected $overrides = [];
+  protected array $overrides = [];
 
-  /**
-   * @var string
-   */
-  protected $tplFile = <<<'PHP'
+  protected string $tplFile = <<<'PHP'
 <?php
 
 /**
@@ -30,7 +26,7 @@ namespace PHPSTORM_META {
 
 PHP;
 
-  protected $tplOverride = <<<'PHP'
+  protected string $tplOverride = <<<'PHP'
   override(
     {{ class }}::{{ method }},
     map([
@@ -106,7 +102,7 @@ PHP;
         '{{ class }}' => Utils::prefixFqnWithBackslash($override['class']),
         '{{ method }}' => $override['method'],
         '{{ pairs }}' => implode(",\n      ", $pairs) . ',',
-      ]
+      ],
     );
   }
 

@@ -1,15 +1,14 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\ide_helper\Robo\Task;
 
 use Drupal\ide_helper\Handlers\PhpStormMetaRenderer;
 
 class PhpstormMetaRendererTask extends BaseTask {
 
-  /**
-   * @var array
-   */
-  protected $phpStormMeta = [];
+  protected array $phpStormMeta = [];
 
   public function getPhpStormMeta(): array {
     return $this->phpStormMeta;
@@ -24,10 +23,7 @@ class PhpstormMetaRendererTask extends BaseTask {
     return $this;
   }
 
-  /**
-   * @var bool
-   */
-  protected $multipleFiles = TRUE;
+  protected bool $multipleFiles = TRUE;
 
   public function getMultipleFiles(): bool {
     return $this->multipleFiles;
@@ -42,10 +38,7 @@ class PhpstormMetaRendererTask extends BaseTask {
     return $this;
   }
 
-  /**
-   * @var \Drupal\ide_helper\Handlers\PhpStormMetaRenderer
-   */
-  protected $phpStormMetaRenderer;
+  protected PhpStormMetaRenderer $phpStormMetaRenderer;
 
   /**
    * {@inheritdoc}

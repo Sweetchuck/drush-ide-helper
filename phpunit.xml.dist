@@ -1,76 +1,68 @@
 <phpunit
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/5.7/phpunit.xsd"
-  backupGlobals="false"
-  bootstrap="src-dev/Tests/bootstrap.inc"
+  xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+  bootstrap="tests/src/bootstrap.php"
+  verbose="true"
   colors="true">
 
   <php>
-    <!-- These variables may alternatively be set as environment variables. -->
+    <!-- E_DEPRECATED = 8192 -->
+    <!-- E_USER_DEPRECATED = 16384 -->
+    <!-- E_ALL = 32767 -->
+    <!-- E_ALL & ~E_DEPRECATED = 24575 -->
+    <!-- E_ALL & ~E_USER_DEPRECATED = 16383 -->
+    <ini name="error_reporting" value="32767" />
 
-    <!-- Drupal major version to run tests over -->
-    <var name="UNISH_DRUPAL_MAJOR_VERSION" value="8"/>
+    <!-- Do not limit the amount of memory tests take to run. -->
+    <ini name="memory_limit" value="-1" />
 
-    <!--Uncomment and edit one of the lines below depending on DB platform.-->
-    <!--DB User must have create/drop permissions-->
-    <!--<var name="UNISH_DB_URL" value="mysql://root:@127.0.0.1"/> -->
-    <!--<var name="UNISH_DB_URL" value="pgsql://postgres:@localhost"/>-->
-    <!--<var name="UNISH_DB_URL" value="sqlite://none/of/this/matters"/>-->
+    <env name="SYMFONY_DEPRECATIONS_HELPER" value="disabled" />
 
-    <!--User must have write permissions to this directory.-->
-    <!--If not supplied, defaults to sys_get_temp_dir().-->
-    <const name="UNISH_TMP" value="./src-dev/fixtures" />
+    <!-- Example SIMPLETEST_BASE_URL value: http://localhost -->
+    <!-- <env name="SIMPLETEST_BASE_URL" value=""/> -->
+    <!-- <env name="DTT_BASE_URL" value=""/> -->
 
-    <!--Uncomment the line below if your path to drush differs from `which drush`. Use absolute path.-->
-    <!--<var name="UNISH_DRUSH" value="./bin/drush"/>-->
+    <!-- Example SIMPLETEST_DB value: mysql://username:password@localhost/databasename#table_prefix -->
+    <!-- <env name="SIMPLETEST_DB" value=""/> -->
 
-    <!--Uncomment to provide a group the user running the tests belong to. This is needed for some filesystem tests. -->
-    <!--<var name="UNISH_USERGROUP" value="staff"/>-->
+    <!-- Example UNISH_DB_URL value: mysql://me:my_password@127.0.0.1:3306/my_db_01 -->
+    <!-- <env name="UNISH_DB_URL" value=""/> -->
 
-    <!-- Uncomment to disable the total runtime and output timeouts for commands run through CommandUnishTestCase::execute().  -->
-    <env name="UNISH_NO_TIMEOUTS" value="y"/>
+    <env name="UNISH_NO_TIMEOUTS" value="y" />
 
-    <!-- See _drush_preflight_columns() -->
-    <env name="COLUMNS" value="180"/>
+    <!-- Example BROWSERTEST_OUTPUT_DIRECTORY value: /path/to/webroot/sites/simpletest/browser_output -->
+    <!-- <env name="BROWSERTEST_OUTPUT_DIRECTORY" value=""/> -->
   </php>
 
   <testsuites>
     <testsuite name="Unit">
-      <directory>src-dev/Tests/Unit</directory>
+      <directory>tests/src/Unit/</directory>
     </testsuite>
 
-    <testsuite name="Unish">
-      <directory>src-dev/Tests/Unish</directory>
+    <testsuite name="Integration">
+      <directory>tests/src/Integration/</directory>
     </testsuite>
   </testsuites>
 
-  <filter>
-    <whitelist processUncoveredFilesFromWhitelist="true">
+  <coverage processUncoveredFiles="true">
+    <include>
+      <directory>Commands/</directory>
       <directory>src/</directory>
-    </whitelist>
-  </filter>
+    </include>
+
+    <report>
+      <text outputFile="php://stdout" />
+      <html outputDirectory="reports/human/coverage/all/html" />
+
+      <clover outputFile="reports/machine/coverage/all/clover.xml" />
+      <php outputFile="reports/machine/coverage-php/all.php" />
+      <xml outputDirectory="reports/machine/coverage/all/xml" />
+    </report>
+  </coverage>
 
   <logging>
-    <log
-      type="coverage-text"
-      target="php://stdout"/>
+    <testdoxHtml outputFile="reports/human/unit/junit.all.html" />
 
-    <log
-      type="coverage-html"
-      target="reports/human/coverage/html"/>
-
-    <log
-      type="coverage-clover"
-      target="reports/machine/coverage/coverage.xml"/>
-
-    <log
-      type="testdox-html"
-      target="reports/human/unit/junit.html"
-      logIncompleteSkipped="true"/>
-
-    <log
-      type="junit"
-      target="reports/machine/unit/junit.xml"
-      logIncompleteSkipped="true"/>
+    <junit outputFile="reports/machine/unit/junit.all.xml" />
   </logging>
 </phpunit>

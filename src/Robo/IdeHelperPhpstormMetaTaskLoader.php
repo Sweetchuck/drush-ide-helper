@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\ide_helper\Robo;
 
 use Drupal\ide_helper\Robo\Task\PhpstormMetaCollectorTask;
@@ -23,9 +25,11 @@ trait IdeHelperPhpstormMetaTaskLoader {
    * @return \Drupal\ide_helper\Robo\Task\PhpstormMetaRendererTask|\Robo\Collection\CollectionBuilder
    */
   public function taskIdeHelperPhpstormMetaRenderer(array $options = []): CollectionBuilder {
-    return $this
-      ->task(PhpstormMetaRendererTask::class)
-      ->setOptions($options);
+    /** @var \Drupal\ide_helper\Robo\Task\PhpstormMetaRendererTask|\Robo\Collection\CollectionBuilder $task */
+    $task = $this->task(PhpstormMetaRendererTask::class);
+    $task->setOptions($options);
+
+    return $task;
   }
 
 }

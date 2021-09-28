@@ -1,0 +1,179 @@
+version: 2.1
+
+.env_xdebug: &env_xdebug
+  XDEBUG_MODE: 'coverage'
+
+.env_composer: &env_composer
+  COMPOSER_ALLOW_SUPERUSER: '1'
+  COMPOSER_NO_INTERACTION: '1'
+  COMPOSER_MEMORY_LIMIT: '-1'
+  COMPOSER_DISABLE_XDEBUG_WARN: '1'
+  COMPOSER_CACHE_DIR: '/home/circleci/.cache/composer'
+
+.env_test: &env_test
+  SIMPLETEST_BASE_URL: 'http://localhost:8888'
+  DTT_BASE_URL: 'http://localhost:8888'
+  SIMPLETEST_DB: 'sqlite://sites/default/db.default.default.sqlite'
+  UNISH_DB_URL: 'sqlite://sites/default/db.default.default.sqlite'
+  UNISH_NO_TIMEOUTS: 'y'
+
+orbs:
+  codecov: 'codecov/codecov@3.1.0'
+
+executors:
+  php_min:
+    environment:
+      <<: *env_xdebug
+      <<: *env_composer
+      <<: *env_test
+
+    docker:
+      -
+        name: 'main'
+        image: 'circleci/php:7.4'
+
+  php_plus1:
+    environment:
+      <<: *env_xdebug
+      <<: *env_composer
+      <<: *env_test
+
+    docker:
+      -
+        name: 'main'
+        image: 'circleci/php:8.0'
+
+commands:
+  install_php_requirements:
+    description: ''
+    steps:
+      -
+        run:
+          name: 'Install required PHP extensions'
+          command: |
+            sudo apt-get -y update
+            sudo apt-get -y install \
+              sqlite3 \
+              libpng-dev
+
+            sudo -E docker-php-ext-install -j$(nproc) \
+              gd
+
+            sudo pecl install \
+              pcov
+
+  composer_install:
+    description: 'Install Composer dependencies with cache restore and save'
+    steps:
+      -
+        restore_cache:
+          name: 'Composer - cache restore'
+          keys:
+            - 'composer-{{ checksum "./composer.lock" }}-v3'
+      -
+        run:
+          name: 'Composer - install'
+          command: >
+            composer install --no-progress
+      -
+        save_cache:
+          name: 'Composer - cache save'
+          key: 'composer-{{ checksum "./composer.lock" }}-v3'
+          paths:
+            - '/home/circleci/.cache/composer/'
+
+  lint:
+    description: 'Run linters'
+    steps:
+      -
+        run:
+          name: 'Run linters'
+          command: 'bin/robo lint'
+
+  test:
+    description: 'Run tests'
+    steps:
+      -
+        run:
+          name: 'Run tests - Unit'
+          command: 'bin/robo test:phpunit Unit'
+      -
+        codecov/upload:
+          flags: 'unit'
+          file: './reports/machine/coverage/coverage.unit.xml'
+      -
+        run:
+          name: 'Run tests - Integration'
+          command: |
+            (
+              cd tests/fixtures/project_01/docroot
+              php -S localhost:8888 .ht.router.php 1>/dev/null 2>/dev/null &
+            )
+
+            bin/drush \
+              --root="${PWD}/tests/fixtures/project_01/docroot" \
+              --uri='http://localhost:8888' \
+              --yes \
+              site:install \
+              minimal
+
+            bin/robo test:phpunit Integration
+      -
+        codecov/upload:
+          flags: 'integration'
+          file: './reports/machine/coverage/coverage.integration.xml'
+      -
+        store_test_results:
+          name: 'Store test results'
+          path: './reports/machine/unit'
+
+jobs:
+  build:
+    executor: 'php_min'
+    working_directory: '~/repo'
+    steps:
+      - 'checkout'
+      - 'install_php_requirements'
+      - 'composer_install'
+  lint:
+    executor: 'php_min'
+    working_directory: '~/repo'
+    steps:
+      - 'checkout'
+      - 'install_php_requirements'
+      - 'composer_install'
+      - 'lint'
+  test_php_min:
+    executor: 'php_min'
+    working_directory: '~/repo'
+    steps:
+      - 'checkout'
+      - 'install_php_requirements'
+      - 'composer_install'
+      - 'test'
+  test_php_plus1:
+    executor: 'php_plus1'
+    working_directory: '~/repo'
+    steps:
+      - 'checkout'
+      - 'install_php_requirements'
+      - 'composer_install'
+      - 'test'
+
+workflows:
+  lint_and_test:
+    jobs:
+      -
+        build: {}
+      -
+        lint:
+          requires:
+            - 'build'
+      -
+        test_php_min:
+          requires:
+            - 'build'
+      -
+        test_php_plus1:
+          requires:
+            - 'build'
